@@ -15,7 +15,7 @@
   <div class="form-container">
     <div class="logo-title-container">
       <img src="SU Comm - Universal logo.jpg" alt="Maties Ultimate Frisbee" class="logo">
-      <h2>Competitive Scoring [DEMO]</h2>
+      <h2>Competitive Scoring [DEMO] v2</h2>
     </div>
 
     <form id="scoreForm">
@@ -43,48 +43,26 @@
         </tr>
       </table>
 
-<!-- Timer Table -->
-<table class="timer-table">
-  <tr>
-    <th colspan="2" class="timer-title">Game Timer</th>
-  </tr>
-  <tr>
-    <!-- Left Half: Buttons -->
-    <td class="timer-right">
-      <button type="button" class="add-score taller-button" onclick="resetCountdown()">Reset</button>
-      <button type="button" class="add-score taller-button" onclick="toggleTimer()" id="playPauseBtn">Play</button>
-    </td>
+      <!-- Timer Table
+      <table class="timer-table">
+        <tr>
+          <th colspan="2" class="timer-title">Game Timer</th>
+        </tr>
+        <tr>
+          <td class="timer-left" id="timerColumn">
+            <div id="timerDisplay" class="timer-display">20:00</div>
 
-    <!-- Right Half: Timer Display and Input -->
-    <td class="timer-left" id="timerColumn">
-      <div id="timerDisplay" class="timer-display">50:00</div>
-      <label for="countdownTime" class="timer-label">Set Time (min):</label>
-      <input type="number" id="countdownTime" value="100" min="1" max="120" class="timer-input">
-    </td>
-  </tr>
-</table>
-
-<!-- Second Timer Table -->
-<table class="timer-table">
-  <tr>
-    <th colspan="2" class="timer-title">Secondary Timer</th>
-  </tr>
-  <tr>
-    <!-- Left Half: Timer Display and Input -->
-    <td class="timer-left" id="timerColumn2">
-      <div id="timerDisplay2" class="timer-display">10:00</div>
-      <label for="countdownTime2" class="timer-label">Set Time (min):</label>
-      <input type="number" id="countdownTime2" value="10" min="1" max="120" class="timer-input">
-    </td>
-
-    <!-- Right Half: Buttons -->
-    <td class="timer-right">
-      <button type="button" class="add-score taller-button" onclick="resetCountdown2()">Reset</button>
-      <button type="button" class="add-score taller-button" onclick="toggleTimer2()" id="playPauseBtn2">Play</button>
-    </td>
-  </tr>
-</table>
-
+            <label for="countdownTime" class="timer-label">Set Time (min):</label>
+            <input type="number" id="countdownTime" value="20" min="1" max="60" class="timer-input">
+          </td>
+          
+          <td class="timer-right">
+            <button type="button" class="add-score taller-button" onclick="resetCountdown()">Reset</button>
+            <button type="button" class="add-score taller-button" onclick="toggleTimer()" id="playPauseBtn">Play</button>
+          </td>
+        </tr>
+      </table>
+       -->
 
       <!-- Scoring Table -->
       <table>
