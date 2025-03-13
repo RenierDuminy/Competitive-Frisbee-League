@@ -384,10 +384,14 @@ async function submitScore() {
     alert('No scores have been logged.');
     return;
   }
+
+  // Determine GameID first
   const teamAName = document.getElementById('teamA').value;
   const teamBName = document.getElementById('teamB').value;
   const gameID = `${teamAName} vs ${teamBName}`;
-  const date = new Date().toLocaleDateString();
+
+  // Now download CSV as "BackupLog_<GameID>.csv"
+  downloadDataAsCSV(scoreLogs, `BackupLog - ${gameID}.csv`);
 
   const dataToSend = {
     GameID: gameID,
@@ -572,6 +576,28 @@ function resetCountdown() {
   saveTimerState();
   updateTimerDisplay();
 }
+
+// NEW FUNCTION
+function downloadDataAsCSV(dataArray, filename = 'scoreLogs.csv') {
+  // Build CSV string
+  const headers = Object.keys(dataArray[0]).join(',');
+  const rows = dataArray.map(item =>
+    Object.values(item).map(value => `"${value}"`).join(',')
+  );
+  const csvContent = [headers, ...rows].join('\n');
+
+  // Create file and trigger download
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 
 // Initialize once the page loads
 window.addEventListener('DOMContentLoaded', loadTimerState);
