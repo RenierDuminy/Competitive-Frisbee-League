@@ -391,7 +391,7 @@ async function submitScore() {
   const gameID = `${teamAName} vs ${teamBName}`;
 
   // Now download CSV as "BackupLog_<GameID>.csv"
-  downloadDataAsCSV(scoreLogs, `BackupLog - ${gameID}.csv`);
+  //downloadDataAsCSV(scoreLogs, `BackupLog - ${gameID}.csv`);
 
   const dataToSend = {
     GameID: gameID,
