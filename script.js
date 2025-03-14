@@ -384,11 +384,10 @@ async function submitScore() {
     alert('No scores have been logged.');
     return;
   }
-
-  // Determine GameID first
   const teamAName = document.getElementById('teamA').value;
   const teamBName = document.getElementById('teamB').value;
   const gameID = `${teamAName} vs ${teamBName}`;
+  const date = new Date().toLocaleDateString();
 
   const dataToSend = {
     GameID: gameID,
