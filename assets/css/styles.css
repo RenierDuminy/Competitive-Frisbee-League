@@ -107,3 +107,13 @@ body {
     padding: 0;
   }
 }
+
+/* styles.css */
+/* — Make images & PDFs fluid — */
+.responsive-image,
+.responsive-pdf {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px var(--color-shadow);
+}
