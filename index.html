@@ -1,164 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Metadata and CSS styles -->
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Competitive Score Sheet</title>
-  <link rel="icon" href="./page_icon.png" type="image/png"> 
-  <link rel="shortcut icon" href="./page_icon.png" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stellenbosch Frisbee</title>
 
-  <!-- Link to the external CSS file -->
-  <link rel="stylesheet" href="styles.css">
+  <!-- Favicon -->
+  <link rel="icon" href="page_icon.png" type="image/png">
+
+  <!-- Global stylesheet -->
+  <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
-  <div class="form-container">
-    <div class="logo-title-container">
-      <img src="SU Comm - Universal logo.jpg" alt="Maties Ultimate Frisbee" class="logo">
-      <h2>Competitive Scoring [DEMO]</h2>
+  <!-- Hero banner -->
+  <header class="hero">
+    <div class="hero-overlay">
+      <img src="assets/images/SU Comm - Universal logo.jpg" alt="Maties Ultimate Frisbee Logo" class="hero-logo">
+      <h1>Stellenbosch Frisbee</h1>
     </div>
+  </header>
 
-    <form id="scoreForm">
-      <!-- Description Table (Team Selection Box) -->
-      <table>
-        <tr>
-          <th>Team A</th>
-          <td>
-            <select id="teamA" required>
-              <option value="">Select Team A</option>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <th>Team B</th>
-          <td>
-            <select id="teamB" required>
-              <option value="">Select Team B</option>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <th>Time</th>
-          <td><input type="text" id="time" value="" readonly></td>
-        </tr>
-      </table>
+  <!-- Main navigation -->
+  <main class="container">
+    <nav class="grid-nav">
+      <a href="mens.html" class="grid-item">Men’s Frisbee League</a>
+      <a href="womens.html" class="grid-item">Women’s Frisbee League</a>
+      <a href="idl.html" class="grid-item">Internal Draft League</a>
+      <a href="about.html" class="grid-item">Additional Information</a>
+    </nav>
+  </main>
 
-      <!-- Timer Table
-      <table class="timer-table">
-        <tr>
-          <th colspan="2" class="timer-title">Game Timer</th>
-        </tr>
-        <tr>
-          <td class="timer-left" id="timerColumn">
-            <div id="timerDisplay" class="timer-display">20:00</div>
+  <!-- Footer -->
+  <footer class="site-footer">
+    &copy; <span id="year"></span> Maties Ultimate Frisbee
+  </footer>
 
-            <label for="countdownTime" class="timer-label">Set Time (min):</label>
-            <input type="number" id="countdownTime" value="20" min="1" max="60" class="timer-input">
-          </td>
-          
-          <td class="timer-right">
-            <button type="button" class="add-score taller-button" onclick="resetCountdown()">Reset</button>
-            <button type="button" class="add-score taller-button" onclick="toggleTimer()" id="playPauseBtn">Play</button>
-          </td>
-        </tr>
-      </table>
-       -->
-
-      <!-- Scoring Table -->
-      <table>
-        <tr>
-          <th>Score A</th>
-          <th>Assist A</th>
-          <th>Total</th>
-          <th>Score B</th>
-          <th>Assist B</th>
-          <th>Edit</th>
-        </tr>
-        <tbody id="scoringTableBody"></tbody>
-      </table>
-
-      <!-- Add Score Buttons -->
-      <div class="add-score-buttons">
-        <button type="button" class="add-score taller-button" onclick="openPopup('A')">
-          + Add Score for Team A
-        </button>
-        <button type="button" class="add-score" onclick="openPopup('B')">
-          + Add Score for Team B
-        </button>
-      </div>
-
-      <!-- Team List Section -->
-      <div class="team-list-container">
-        <div>
-          <h3>Team A Players</h3>
-          <textarea id="teamAList" readonly></textarea>
-        </div>
-        <div>
-          <h3>Team B Players</h3>
-          <textarea id="teamBList" readonly></textarea>
-        </div>
-      </div>
-
-      <!-- Submit Section with Loading Animation -->
-      <div class="submit-section">
-        <input type="button" value="Submit" onclick="submitScore()">
-        <div id="loadingAnimation" style="display: none;">
-          Loading<span id="dots"></span>
-        </div>
-      </div>
-    </form>
-  </div>
-
-  <!-- Success Message -->
-  <div id="successMessage" style="display: none;">
-    Data has been successfully exported to Google Sheets!
-  </div>
-
-  <!-- Container to display logged data after submission -->
-  <div id="loggedDataContainer" style="display: none;">
-    <h3>Logged Data</h3>
-    <table id="loggedDataTable">
-      <thead>
-        <tr>
-          <th>GameID</th>
-          <th>Time</th>
-          <th>Team</th>
-          <th>Score</th>
-          <th>Assist</th>
-        </tr>
-      </thead>
-      <tbody id="loggedDataBody"></tbody>
-    </table>
-  </div>
-
-  <!-- Popup for Adding/Editing Score -->
-  <div class="overlay" id="overlay"></div>
-  <div class="popup" id="scorePopup">
-    <button
-      type="button"
-      onclick="closePopup()"
-      style="float: right; background: none; border: none; font-size: 16px; cursor: pointer;">
-      &times;
-    </button>
-
-    <h3 id="popupTitle">Add new point</h3>
-
-    <!-- Scorer heading -->
-    <label for="scorer" style="font-weight: bold;">Scorer:</label>
-    <select id="scorer" required>
-      <option value="">Select Scorer</option>
-    </select>
-
-    <!-- Assist heading -->
-    <label for="assist" style="font-weight: bold;">Assist:</label>
-    <select id="assist" required>
-      <option value="">Select Assist</option>
-    </select>
-
-    <input type="button" id="popupButton" value="Add Score" onclick="saveScore()">
-  </div>
-
-  <!-- Link to the external JavaScript file -->
-  <script src="script.js"></script>
+  <!-- Site-wide JavaScript -->
+  <script defer src="assets/js/script.js"></script>
 </body>
 </html>
