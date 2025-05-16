@@ -20,14 +20,14 @@ body {
   font-family: Helvetica;
   background: var(--color-bg-main);
   color: var(--color-brand);
-  line-height: 1.4;
+  line-height: 1.2;
   padding: 1rem; /* breathing room on all sides */
 }
 
 /* Hero always full-width, shorter on phones */
 .hero {
   position: relative;
-  height: 180px;
+  height: 120px;
   background-color: var(--color-headings-bg);
   display: flex;
   align-items: center;
@@ -38,13 +38,14 @@ body {
 .hero-overlay {
   background: rgba(0,0,0,0.6);
   padding: 1rem;
-  border-radius: 6px;
+  border-radius: 8px;
   text-align: center;
 }
 
 .hero-logo {
   max-height: 60px;
   margin-bottom: 0.5rem;
+  border-radius: 8px;
 }
 
 .hero h1 {
@@ -92,7 +93,11 @@ body {
 
 /* PDF embeds shrink on phones */
 .pdf-container embed {
-  height: 300px;
+  width: 90%;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  height: 400px;
 }
 
 /* Slight enhancements at tablet sizes */
@@ -112,10 +117,13 @@ body {
 /* — Make images & PDFs fluid — */
 .responsive-image,
 .responsive-pdf {
-  width: 100%;
+  width: 90%;
+  max-width: 100%;
   height: auto;
-  border-radius: 8px;
+  display: block;
+  margin: 0 auto;
   box-shadow: 0 2px 5px var(--color-shadow);
+  border-radius: 5px;
 }
 
 /* ======================== */
