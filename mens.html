@@ -19,5 +19,16 @@
   <main>
     <p>Explore our latest fashion for men.</p>
   </main>
+
+  <!-- Warn before unload -->
+  <script>
+    window.addEventListener('beforeunload', function (e) {
+      // Modern browsers require preventDefault and returnValue set
+      e.preventDefault();
+      e.returnValue = '';
+      // Some browsers also respect returned string
+      return '';
+    });
+  </script>
 </body>
 </html>
