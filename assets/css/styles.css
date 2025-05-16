@@ -43,8 +43,11 @@ body {
 }
 
 .hero-logo {
-  max-height: 60px;
-  margin-bottom: 0.5rem;
+  display: block;
+  margin: 0 auto;
+  width: 50%;           /* scales the image to 80% of the container */
+  height: auto;         /* preserves the aspect ratio */
+  max-width: 600px;     /* optional: prevents it from getting too large */
   border-radius: 8px;
 }
 
@@ -63,7 +66,8 @@ body {
 
 .grid-item {
   display: block;
-  width: 100%;
+  width: 75%;
+  margin: 0 auto;
   padding: 1rem;
   background: var(--color-brand);
   color: var(--color-bg-white);
