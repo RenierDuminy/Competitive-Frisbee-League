@@ -484,3 +484,24 @@ input[type="button"]:hover,
 .timer-paused {
   background-color: lightcoral;
 }
+
+.progress-container {
+  position: relative;
+  max-width: 800px;    /* adjust to your bar’s width */
+  margin: 1rem auto;
+}
+.progress-container img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.year-pointer {
+  position: absolute;
+  top: 100%;           /* sits just below the image */
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 12px solid red; /* points down */
+  transform: translateX(-50%);
+}

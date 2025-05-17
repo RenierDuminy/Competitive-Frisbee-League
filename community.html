@@ -12,50 +12,111 @@
 
 <body>
   <main class="form-container">
+
     <header class="site-header">
-    <img src="assets/images/SU Comm - Universal logo.jpg"
-         alt="Maties Ultimate Frisbee"
-         class="header-image">
-
-    <!-- anything in the middle (optional) -->
-    <!-- <span class="tagline">Ultimate Frisbee</span> -->
-
+    <img src="assets/images/SU Comm - Universal logo.jpg" alt="Maties Ultimate Frisbee" class="header-image">
     <a href="index.html" class="home-button">Home</a>
+
   </header>
-    <h2>
-        Competitive League
-    </h2>
-        <img src="assets/images/Competitive Year schedule.png"
-         alt="Maties Ultimate Frisbee"
-         class="content-image">
+      <h2>Competitive League</h2>
+    <div class="progress-container">    
+        <img src="assets/images/Competitive Year schedule.png" alt="Err" class="content-image">
+        <div class="year-pointer"></div>
+    </div>
 
-
-
-    <h2>
-        Casual League
-    </h2>
-        <img src="assets/images/Casual Year schedule.png"
-         alt="Maties Ultimate Frisbee"
-         class="content-image">
+    <h2> Casual League </h2>
+    <div class="progress-container"> 
+        <img src="assets/images/Casual Year schedule.png" alt="Err" class="content-image">
+        <div class="year-pointer"></div>
+    </div>
 
     <h2>
         Weekly Schedule
     </h2>
-        <img src="assets/images/Weekly schedule.png"
-         alt="Maties Ultimate Frisbee"
-         class="content-image">
+        <img src="assets/images/Weekly schedule.png" alt="Err" class="content-image">
 
 
     <h2>
         Events
     </h2>
 
+    <table>
+        <tr>
+            <th>Events</th> <th>Date</th>    
+        </tr>
+        <tr>
+            <td>CrossHatched</td>  <td>March 66th</td>
+        </tr>
+        <tr>
+            <td>Huck in the Bosch</td>  <td>xxx</td>
+        </tr>
+    </table>
+
 
 
     <h2>
         Links
     </h2>
+
+<title>Formatted Links List</title>
+  <style>
+    /* 1. Target your list with a class */
+    .links-list {
+      list-style: none;       /* remove bullets */
+      padding: 0;             /* remove default inset */
+      max-width: 400px;       /* optional: limit width */
+      margin: 2rem auto;      /* center & add vertical space */
+      font-family: Arial, sans-serif;
+    }
+
+    .links-list li {
+      margin-bottom: 1rem;    /* space between items */
+    }
+
+    /* 2. Style the anchors */
+    .links-list a {
+      display: block;                     /* make full-width “buttons” */
+      padding: 0.75rem 1rem;              /* inner spacing */
+      background-color: #f0f0f0;          /* light grey background */
+      color: #333;                        /* dark text */
+      text-decoration: none;              /* remove underline */
+      border-radius: 4px;                 /* round corners */
+      transition: background-color 0.2s;  /* smooth hover */
+    }
+
+    .links-list a:hover {
+      background-color: #e0e0e0;          /* a bit darker on hover */
+    }
+  </style>
+</head>
+<body>
+
+  <ul class="links-list">
+    <li>
+      <a href="https://chat.whatsapp.com/C05kGplx4pE0HbNpjQTZhQ"
+         target="_blank"
+         rel="noopener">
+        Join our WhatsApp Group
+      </a>
+    </li>
+    <li>
+      <a href="https://www.capetownultimate.co.za/home"
+         target="_blank"
+         rel="noopener">
+        CTFDA Official Website
+      </a>
+    </li>
+    <li>
+      <a href="https://drive.google.com/drive/folders/1FGqBdP4_pTNh8-dmqMz9qa1jTg2XvaX3"
+         target="_blank"
+         rel="noopener">
+        Google Drive Folder
+      </a>
+    </li>
+  </ul>
+
   
   </main>
-</body>
+<script defer src="assets/js/community.js"></script>
+</body> 
 </html>
