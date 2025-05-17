@@ -124,6 +124,9 @@ body {
   height: auto;
   margin: 0 auto;
   height: 400px;
+  border: var(--color-brand);
+  border-radius: 8pt;
+  border-width: 6cap;
 }
 
 /* Slight enhancements at tablet sizes */
@@ -149,19 +152,7 @@ body {
   height: auto;
   display: block;
   margin: 0 auto;
-  box-shadow: 0 2px 5px var(--color-shadow);
   border-radius: 5px;
-}
-
-/* ======================== */
-/*        CSS Variables     */
-/* ======================== */
-:root {
-  --color-bg-main: #f7f3f0;
-  --color-bg-white: #ffffff;
-  --color-brand: #6b2c3e;
-  --color-shadow: rgba(0, 0, 0, 0.1);
-  --color-headings-bg: #e1d4c8;
 }
 
 /* ======================== */
