@@ -119,8 +119,8 @@ body {
 
 /* PDF embeds shrink on phones */
 .pdf-container embed {
-  width: 90%;
-  max-width: 100%;
+  width: 95%;
+  max-width: 500pt;
   height: auto;
   margin: 0 auto;
   height: 400px;
@@ -223,6 +223,14 @@ h2 {
   text-align: center;
   color: var(--color-brand);
   font-size: 30px;
+  padding-top: 1.25rem;
+}
+
+h3 {
+  text-align: center;
+  color: var(--color-brand);
+  font-size: 25px;
+  padding-top: 1.25rem;
 }
 
 /* ======================== */
