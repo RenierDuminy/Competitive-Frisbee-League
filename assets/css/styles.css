@@ -1,5 +1,6 @@
 /* styles.css */
-/* ————————————— Mobile-First Base ————————————— */
+
+/* Main colours */
 :root {
   --color-bg-main: #f7f3f0;
   --color-bg-white: #ffffff;
@@ -16,15 +17,16 @@
   padding: 0;
 }
 
+/* Not sure - Body formatting */
 body {
-  font-family: Helvetica;
+  font-family: Montserrat, Helvetica;
   background: var(--color-bg-main);
   color: var(--color-brand);
   line-height: 1.2;
   padding: 1rem; /* breathing room on all sides */
 }
 
-/* Hero always full-width, shorter on phones */
+/* Hero: a Full width banner, like a header */
 .hero {
   position: relative;
   height: 120px;
@@ -51,15 +53,6 @@ body {
   border-radius: 8px;
 }
 
-.hero-logo-about {
-  display: block;
-  margin: 0 auto;
-  width: 40%;           /* scales the image to 80% of the container */
-  height: auto;         /* preserves the aspect ratio */
-  max-width: 300px;     /* optional: prevents it from getting too large */
-  border-radius: 10px;
-}
-
 .hero h1 {
   color: var(--color-bg-white);
   font-size: 1.6rem;
@@ -67,18 +60,20 @@ body {
   text-align: center;
 }
 
-/* Nav full-width stack */
+/* Home page navigation grid */
 .grid-nav {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
+/* Home page navigation grid items */
 .grid-item {
   display: block;
-  width: 75%;
+  width: 85%;
+  max-width: 400pt;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 1.2rem;
   background: var(--color-brand);
   color: var(--color-bg-white);
   text-decoration: none;
@@ -87,6 +82,7 @@ body {
   border-radius: 6px;
 }
 
+/* Home page navigation grid items (specific for about page) */
 .grid-item-about {
   display: block;
   width: 40%;
@@ -100,9 +96,10 @@ body {
   border-radius: 6px;
 }
 
+/* Hover effect for grid-item */
 .grid-item:hover,
 .grid-item:focus {
-  background: #541135;
+  background: #380b23;
   transform: translateY(-2px);
 }
 
@@ -117,16 +114,15 @@ body {
   margin-top: 2rem;
 }
 
-/* PDF embeds shrink on phones */
+/* PDF integration format */
 .pdf-container embed {
   width: 95%;
   max-width: 500pt;
-  height: auto;
   margin: 0 auto;
-  height: 400px;
+  height: 500px;
   border: var(--color-brand);
-  border-radius: 8pt;
-  border-width: 6cap;
+  border-radius: 10pt;
+  border-width: 6pt;
 }
 
 /* Slight enhancements at tablet sizes */
@@ -143,7 +139,6 @@ body {
   }
 }
 
-/* styles.css */
 /* — Make images & PDFs fluid — */
 .responsive-image,
 .responsive-pdf {
@@ -154,6 +149,41 @@ body {
   margin: 0 auto;
   border-radius: 5px;
 }
+
+.site-header{
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: var(--color-bg-main);
+}
+
+.header-image{
+  height: 4rem;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.content-image{
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.home-button{
+  display: inline-block;
+  padding: 0.75rem 3rem;
+  background: var(--color-brand,#6e3542);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+
 
 /* ======================== */
 /*       Utility Classes    */
@@ -168,16 +198,6 @@ body {
   border: none;
   font-size: 20px;
   cursor: pointer;
-}
-
-/* ======================== */
-/*       Base Styling       */
-/* ======================== */
-body {
-  font-family: Montserrat, sans-serif;
-  background: var(--color-bg-main);
-  margin: 0;
-  padding: 10px;
 }
 
 /* ======================== */
@@ -210,6 +230,13 @@ body {
 /* ======================== */
 /*         Headings         */
 /* ======================== */
+h1 {
+  text-align: center;
+  color: var(--color-brand);
+  font-size: 35px;
+  padding-top: 1.25rem;
+}
+
 h2 {
   text-align: center;
   color: var(--color-brand);
@@ -233,7 +260,6 @@ table {
   margin-bottom: 12px;
 }
 
-th,
 td {
   border: 1px solid var(--color-brand);
   padding: 8px;
@@ -242,7 +268,9 @@ td {
 }
 
 th {
+  border: 1px solid var(--color-brand);
   background: var(--color-headings-bg);
+  padding: 8px;
   color: var(--color-brand);
   font-size: 13px;
   text-align: center;
