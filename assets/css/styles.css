@@ -47,14 +47,24 @@ body {
   margin: 0 auto;
   width: 50%;           /* scales the image to 80% of the container */
   height: auto;         /* preserves the aspect ratio */
-  max-width: 600px;     /* optional: prevents it from getting too large */
+  max-width: 500px;     /* optional: prevents it from getting too large */
   border-radius: 8px;
+}
+
+.hero-logo-about {
+  display: block;
+  margin: 0 auto;
+  width: 40%;           /* scales the image to 80% of the container */
+  height: auto;         /* preserves the aspect ratio */
+  max-width: 300px;     /* optional: prevents it from getting too large */
+  border-radius: 10px;
 }
 
 .hero h1 {
   color: var(--color-bg-white);
   font-size: 1.6rem;
   line-height: 1.2;
+  text-align: center;
 }
 
 /* Nav full-width stack */
@@ -75,7 +85,19 @@ body {
   text-align: center;
   font-weight: 600;
   border-radius: 6px;
-  transition: transform 0.2s ease, background 0.3s ease;
+}
+
+.grid-item-about {
+  display: block;
+  width: 40%;
+  margin: 0 auto;
+  padding: 0.5rem;
+  background: var(--color-brand);
+  color: var(--color-bg-white);
+  text-decoration: none;
+  text-align: center;
+  font-weight: 600;
+  border-radius: 6px;
 }
 
 .grid-item:hover,
@@ -111,6 +133,7 @@ body {
   }
   .hero h1 {
     font-size: 2.2rem;
+    text-align: center;
   }
   .container {
     padding: 0;
@@ -223,6 +246,7 @@ th {
   background: var(--color-headings-bg);
   color: var(--color-brand);
   font-size: 13px;
+  text-align: center;
 }
 
 /* ======================== */

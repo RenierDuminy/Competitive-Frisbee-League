@@ -1,577 +1,321 @@
-// Initialize score variables
+/* -------------------------------
+   Score logging & timer script
+   ------------------------------- */
+
+// ---------- Global state ----------
 let teamAScore = 0;
 let teamBScore = 0;
-
-// Global variable to store team data
-let teamsData = [];
-
-// Variable for loading animation interval
-let loadingInterval;
-
-// Tracks if we're editing an existing score
-// If null => adding new
-// If set to an ID => editing
 let currentEditID = null;
+let countdownInterval;
+let isRunning = false;
+let endTime = 0; // absolute end timestamp (ms)
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Set the current time
-  document.getElementById('time').value = new Date().toLocaleString();
-  fetchTeams();
-});
-
-// ------------- Fetch Teams -------------
-async function fetchTeams() {
-  // Replace this URL with your own deployed Apps Script link
-  const url = "https://script.google.com/macros/s/AKfycbwgDHDYawscG5k1v0dbjse8xtm7WUcGZtQRACK-9dxjerY3VsvkkeL4QBGIRwXsqT85/exec";
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    // teamsData is an object like { "Dagbreek": [...players...], "Helderberg": [...], etc. }
-    teamsData = await response.json();
-    console.log("Fetched teams:", teamsData);
-
-    // Now that we have the data, populate the <select> elements
-    populateTeamOptions(teamsData);
-
-  } catch (error) {
-    console.error("Error fetching teams:", error);
-  }
-}
-
-
-// ------------- Populate Team Options -------------
-function populateTeamOptions(teams) {
-  const teamASelect = document.getElementById('teamA');
-  const teamBSelect = document.getElementById('teamB');
-
-  // Clear out any existing <option> elements
-  teamASelect.innerHTML = "";
-  teamBSelect.innerHTML = "";
-
-  // Get the array of team names from the object
-  const teamNames = Object.keys(teams);
-
-  // Create a DocumentFragment for performance
-  const fragmentA = document.createDocumentFragment();
-  const fragmentB = document.createDocumentFragment();
-
-  // For each team name, create an <option> in each select
-  teamNames.forEach(teamName => {
-    const optionA = document.createElement('option');
-    optionA.value = teamName;
-    optionA.textContent = teamName;
-    fragmentA.appendChild(optionA);
-
-    const optionB = document.createElement('option');
-    optionB.value = teamName;
-    optionB.textContent = teamName;
-    fragmentB.appendChild(optionB);
-  });
-
-  teamASelect.appendChild(fragmentA);
-  teamBSelect.appendChild(fragmentB);
-
-  // When the user picks a team in <select>, update the textarea
-  teamASelect.addEventListener('change', () => updatePlayerList('teamA'));
-  teamBSelect.addEventListener('change', () => updatePlayerList('teamB'));
-}
-
-
-// ------------- Update Player List -------------
-function updatePlayerList(teamID) {
-  // teamID is either "teamA" or "teamB"
-  const selectedTeam = document.getElementById(teamID).value;
-  const playerListElement = document.getElementById(`${teamID}List`);
-
-  // teamsData[selectedTeam] is an array of players for that team
-  const players = teamsData[selectedTeam] || [];
-
-  // Display players one per line
-  playerListElement.value = players.join('\n');
-
-  // Auto-resize the textarea based on its content
-  playerListElement.style.height = 'auto';
-  playerListElement.style.height = playerListElement.scrollHeight + 'px';
-}
-
-// Fetch the teams once the page has loaded
-window.addEventListener('DOMContentLoaded', fetchTeams);
-
-
-// ------------- Open Popup -------------
-function openPopup(team) {
-  currentEditID = null; // We're adding a new score
-
-  // Show the popup
+// ---------- Add Score ----------
+function addScore(team) {
+  const popup = document.getElementById('scorePopup');
+  popup.dataset.team = team;                // "A" or "B"
   document.getElementById('overlay').style.display = 'block';
-  document.getElementById('scorePopup').style.display = 'block';
-
-  // Popup title & button
+  popup.style.display = 'block';
   document.getElementById('popupTitle').textContent = 'Add Score';
-  document.getElementById('popupButton').value = 'Add Score';
+  document.getElementById('popupButton').value = 'Save Score';
 
-  // Store the team ("A" or "B") in the popup’s data attribute
-  document.getElementById('scorePopup').dataset.team = team;
+  // Reset form fields
+  document.getElementById('scorer').value = '';
+  document.getElementById('assist').value = '';
+  currentEditID = null;
 
-  // Clear out existing options in Scorer & Assist dropdowns
-  const scorerDropdown = document.getElementById('scorer');
-  const assistDropdown = document.getElementById('assist');
-  scorerDropdown.innerHTML = '<option value="">Select Scorer</option>';
-  assistDropdown.innerHTML = '<option value="">Select Assist</option>';
-
-  // Read the relevant team’s textarea (teamAList or teamBList)
-  const playersText = document.getElementById(
-    team === 'A' ? 'teamAList' : 'teamBList'
-  ).value;
-  const players = playersText ? playersText.split('\n') : [];
-
-  // Populate scorer/assist dropdowns with the team's players
-  players.forEach(player => {
-    const optionScorer = document.createElement('option');
-    optionScorer.value = player;
-    optionScorer.textContent = player;
-    scorerDropdown.appendChild(optionScorer);
-
-    const optionAssist = document.createElement('option');
-    optionAssist.value = player;
-    optionAssist.textContent = player;
-    assistDropdown.appendChild(optionAssist);
-  });
-
-  // ------ FIX: Add "N/A" and "‼️ CALLAHAN ‼️" as separate options ------
-  const naOptionScorer = document.createElement('option');
-  naOptionScorer.value = 'N/A';
-  naOptionScorer.textContent = 'N/A';
-  scorerDropdown.appendChild(naOptionScorer);
-
-  // For assist, first add N/A
-  const naOptionAssist = document.createElement('option');
-  naOptionAssist.value = 'N/A';
-  naOptionAssist.textContent = 'N/A';
-  assistDropdown.appendChild(naOptionAssist);
-
-  // Then add a separate Callahan option
-  const callahanOptionAssist = document.createElement('option');
-  callahanOptionAssist.value = '‼️ CALLAHAN ‼️';
-  callahanOptionAssist.textContent = '‼️ CALLAHAN ‼️';
-  assistDropdown.appendChild(callahanOptionAssist);
+  // Build dropdowns for the correct team
+  buildPlayerDropdowns(team);
 }
 
-// ------------- Save Score (Add or Edit) -------------
+// ---------- Build scorer / assist dropdowns ----------
+function buildPlayerDropdowns(teamLetter) {
+  const scorer = document.getElementById('scorer');
+  const assist = document.getElementById('assist');
+  scorer.innerHTML = '<option value="">Select Scorer</option>';
+  assist.innerHTML = '<option value="">Select Assist</option>';
+
+  const playersText = document.getElementById(
+    teamLetter === 'A' ? 'teamAList' : 'teamBList'
+  ).value;
+  const players = playersText.split('\n').filter(p => p.trim() !== '');
+
+  players.forEach(p => {
+    const sOpt = document.createElement('option');
+    sOpt.value = p;
+    sOpt.textContent = p;
+    scorer.appendChild(sOpt);
+
+    const aOpt = document.createElement('option');
+    aOpt.value = p;
+    aOpt.textContent = p;
+    assist.appendChild(aOpt);
+  });
+
+  // Special assist options
+  ['N/A', '‼️ CALLAHAN ‼️'].forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    opt.textContent = t;
+    assist.appendChild(opt);
+  });
+}
+
+// ---------- Save Score (add or edit) ----------
 function saveScore() {
   const popup = document.getElementById('scorePopup');
-  const team = popup.dataset.team; // "A" or "B"
+  const teamLetter = popup.dataset.team;    // "A" | "B"
   const scorer = document.getElementById('scorer').value;
   const assist = document.getElementById('assist').value;
 
-  if (!scorer || !assist) {
-    alert('Please select both scorer and assist.');
+  if (!scorer) {
+    alert('Please select a scorer.');
     return;
   }
 
-  let scoreLogs = JSON.parse(sessionStorage.getItem('scoreLogs')) || [];
+  let scoreLogs = JSON.parse(localStorage.getItem('scoreLogs')) || [];
 
-  if (!currentEditID) {
-    // ----- ADD NEW -----
-    if (team === 'A') teamAScore++;
-    else teamBScore++;
-
-    const newScoreID = Date.now().toString();
-    const logEntry = createLogObject(newScoreID, team, scorer, assist);
-
-    scoreLogs.push(logEntry);
-    sessionStorage.setItem('scoreLogs', JSON.stringify(scoreLogs));
-
-    // Add a new row
-    const scoringTableBody = document.getElementById('scoringTableBody');
-    const newRow = createScoreRow(logEntry);
-    scoringTableBody.appendChild(newRow);
-
-    closePopup();
+  if (currentEditID === null) {
+    // New entry
+    const scoreID = Date.now();
+    scoreLogs.push(createLogObject(scoreID, teamLetter, scorer, assist));
+    appendScoreRow(scoreID, teamLetter, scorer, assist);
+    (teamLetter === 'A' ? teamAScore++ : teamBScore++);
   } else {
-    // ----- EDIT EXISTING -----
-    const index = scoreLogs.findIndex(log => log.scoreID === currentEditID);
-    if (index === -1) {
-      alert('Could not find this score log to edit.');
+    // Edit existing
+    const idx = scoreLogs.findIndex(l => l.scoreID === currentEditID);
+    if (idx === -1) {
+      alert('Could not find score log to edit!');
       return;
     }
-    // We do NOT allow changing the team (only scorer/assist).
-    scoreLogs[index].Score = scorer;
-    scoreLogs[index].Assist = assist;
-    sessionStorage.setItem('scoreLogs', JSON.stringify(scoreLogs));
-
-    // Update the table row
-    const row = document.querySelector(`tr[data-score-id="${currentEditID}"]`);
-    if (row) {
-      // If it's team A, the Score/Assist go in columns 0,1
-      // If it's team B, columns 3,4
-      const teamLetter = popup.dataset.team;
-      if (teamLetter === 'A') {
-        row.cells[0].textContent = scorer; 
-        row.cells[1].textContent = assist;
-      } else {
-        row.cells[3].textContent = scorer; 
-        row.cells[4].textContent = assist;
-      }
-    }
-
-    closePopup();
+    scoreLogs[idx].Scorer = scorer;
+    scoreLogs[idx].Assist = assist;
+    updateScoreRow(currentEditID, scorer, assist, teamLetter);
   }
+
+  localStorage.setItem('scoreLogs', JSON.stringify(scoreLogs));
+  updateScoreboardDisplay();
+  closePopup();
 }
 
-// ------------- Create Log Object -------------
-function createLogObject(scoreID, teamLetter, scorer, assist) {
-  const teamAName = document.getElementById('teamA').value;
-  const teamBName = document.getElementById('teamB').value;
-  const gameID = `${teamAName} vs ${teamBName}`;
-  const teamName = (teamLetter === 'A') ? teamAName : teamBName;
+// ---------- Create log object ----------
+function createLogObject(id, teamLetter, scorer, assist) {
+  const teamA = document.getElementById('teamA').value;
+  const teamB = document.getElementById('teamB').value;
 
   return {
-    scoreID: scoreID,
-    GameID: gameID,
+    scoreID: id,
+    GameID: `${teamA} vs ${teamB}`,
     Time: new Date().toLocaleString(),
-    Team: teamName,
-    Score: scorer,
+    Team: teamLetter === 'A' ? teamA : teamB,
+    Scorer: scorer,
     Assist: assist
   };
 }
 
-// ------------- Create Score Row -------------
-function createScoreRow(logEntry) {
-  const teamAName = document.getElementById('teamA').value;
-  const teamLetter = (logEntry.Team === teamAName) ? 'A' : 'B';
-  const row = document.createElement('tr');
-
-  row.setAttribute('data-score-id', logEntry.scoreID);
-
-  // The scoreboard at the time of adding
-  const scoreboard = `${teamAScore}:${teamBScore}`;
+// ---------- Append / update table rows ----------
+function appendScoreRow(id, teamLetter, scorer, assist) {
+  const body = document.getElementById('scoreTable').tBodies[0];
+  const row = body.insertRow();
+  row.dataset.scoreId = id;
 
   if (teamLetter === 'A') {
-    row.innerHTML = `
-      <td>${logEntry.Score}</td>
-      <td>${logEntry.Assist}</td>
-      <td class="total">${scoreboard}</td>
-      <td></td>
-      <td></td>
-      <td><button type="button" class="edit-btn">Edit</button></td>
-    `;
+    row.insertCell(0).textContent = scorer;
+    row.insertCell(1).textContent = assist;
+    row.insertCell(2).textContent = '';
+    row.insertCell(3).textContent = '';
   } else {
-    row.innerHTML = `
-      <td></td>
-      <td></td>
-      <td class="total">${scoreboard}</td>
-      <td>${logEntry.Score}</td>
-      <td>${logEntry.Assist}</td>
-      <td><button type="button" class="edit-btn">Edit</button></td>
-    `;
+    row.insertCell(0).textContent = '';
+    row.insertCell(1).textContent = '';
+    row.insertCell(2).textContent = scorer;
+    row.insertCell(3).textContent = assist;
   }
 
-  // Attach edit listener
-  row.querySelector('.edit-btn').addEventListener('click', () => {
-    editScore(logEntry.scoreID);
-  });
-
-  return row;
+  const edit = row.insertCell(4);
+  const btn = document.createElement('button');
+  btn.textContent = 'Edit';
+  btn.onclick = () => editScore(id);
+  edit.appendChild(btn);
 }
 
-// ------------- Edit Score -------------
-function editScore(scoreID) {
-  let scoreLogs = JSON.parse(sessionStorage.getItem('scoreLogs')) || [];
-  const logToEdit = scoreLogs.find(log => log.scoreID === scoreID);
-  if (!logToEdit) {
+function updateScoreRow(id, scorer, assist, teamLetter) {
+  const row = document.querySelector(`tr[data-score-id="${id}"]`);
+  if (!row) return;
+
+  if (teamLetter === 'A') {
+    row.cells[0].textContent = scorer;
+    row.cells[1].textContent = assist;
+  } else {
+    row.cells[2].textContent = scorer;
+    row.cells[3].textContent = assist;
+  }
+}
+
+// ---------- Edit ----------
+function editScore(id) {
+  const logs = JSON.parse(localStorage.getItem('scoreLogs')) || [];
+  const log = logs.find(l => l.scoreID === id);
+  if (!log) {
     alert('Could not find score log to edit!');
     return;
   }
 
-  // Store this ID so saveScore() knows we're editing
-  currentEditID = scoreID;
+  currentEditID = id;
+  const teamA = document.getElementById('teamA').value;
+  const teamLetter = log.Team === teamA ? 'A' : 'B';
 
-  // Show the popup in "Edit" mode
+  buildPlayerDropdowns(teamLetter);
+
+  const popup = document.getElementById('scorePopup');
+  popup.dataset.team = teamLetter;
+  document.getElementById('scorer').value = log.Scorer;
+  document.getElementById('assist').value = log.Assist;
   document.getElementById('overlay').style.display = 'block';
-  document.getElementById('scorePopup').style.display = 'block';
+  popup.style.display = 'block';
   document.getElementById('popupTitle').textContent = 'Edit Score';
   document.getElementById('popupButton').value = 'Update Score';
-
-  // Determine if it's Team A or B
-  const teamAName = document.getElementById('teamA').value;
-  const oldTeamLetter = (logToEdit.Team === teamAName) ? 'A' : 'B';
-
-  // Put that in the popup’s dataset (no team dropdown, so user cannot change teams)
-  document.getElementById('scorePopup').dataset.team = oldTeamLetter;
-
-  // Rebuild the scorer/assist dropdowns
-  const scorerDropdown = document.getElementById('scorer');
-  const assistDropdown = document.getElementById('assist');
-
-  scorerDropdown.innerHTML = '<option value="">Select Scorer</option>';
-  assistDropdown.innerHTML = '<option value="">Select Assist</option>';
-
-  // Load players from whichever team is relevant
-  const playersText = document.getElementById(
-    oldTeamLetter === 'A' ? 'teamAList' : 'teamBList'
-  ).value;
-  const players = playersText ? playersText.split('\n') : [];
-
-  // Populate the dropdowns with the team’s players
-  players.forEach(player => {
-    const optionScorer = document.createElement('option');
-    optionScorer.value = player;
-    optionScorer.textContent = player;
-    scorerDropdown.appendChild(optionScorer);
-
-    const optionAssist = document.createElement('option');
-    optionAssist.value = player;
-    optionAssist.textContent = player;
-    assistDropdown.appendChild(optionAssist);
-  });
-
-  // ------ FIX: Add "🚫N/A" and "‼️ CALLAHAN ‼️" as separate options ------
-  const naOptionScorer = document.createElement('option');
-  naOptionScorer.value = '🚫N/A';
-  naOptionScorer.textContent = '🚫N/A';
-  scorerDropdown.appendChild(naOptionScorer);
-
-  const naOptionAssist = document.createElement('option');
-  naOptionAssist.value = '🚫N/A';
-  naOptionAssist.textContent = '🚫N/A';
-  assistDropdown.appendChild(naOptionAssist);
-
-  const callahanOptionAssist = document.createElement('option');
-  callahanOptionAssist.value = '‼️ CALLAHAN ‼️';
-  callahanOptionAssist.textContent = '‼️ CALLAHAN ‼️';
-  assistDropdown.appendChild(callahanOptionAssist);
-
-  // Pre-fill the current scorer and assist
-  scorerDropdown.value = logToEdit.Score;
-  assistDropdown.value = logToEdit.Assist;
 }
 
-// ------------- Close Popup -------------
+// ---------- Popup helper ----------
 function closePopup() {
   document.getElementById('overlay').style.display = 'none';
   document.getElementById('scorePopup').style.display = 'none';
 }
 
-// ------------- Loading Animation -------------
-function startLoadingAnimation() {
-  const loadingAnimation = document.getElementById('loadingAnimation');
-  const dots = document.getElementById('dots');
-  let dotCount = 0;
-
-  loadingAnimation.style.display = 'block';
-  loadingInterval = setInterval(() => {
-    dotCount = (dotCount + 1) % 4; 
-    dots.textContent = '.'.repeat(dotCount);
-  }, 500);
-}
-
-function stopLoadingAnimation() {
-  const loadingAnimation = document.getElementById('loadingAnimation');
-  const dots = document.getElementById('dots');
-  clearInterval(loadingInterval);
-  dots.textContent = '';
-  loadingAnimation.style.display = 'none';
-}
-
-// ------------- Submit Score -------------
+// ---------- Submit (export) ----------
 async function submitScore() {
-  const scoreLogs = JSON.parse(sessionStorage.getItem('scoreLogs')) || [];
-  if (scoreLogs.length === 0) {
+  const logs = JSON.parse(localStorage.getItem('scoreLogs')) || [];
+  if (logs.length === 0) {
     alert('No scores have been logged.');
     return;
   }
-  const teamAName = document.getElementById('teamA').value;
-  const teamBName = document.getElementById('teamB').value;
-  const gameID = `${teamAName} vs ${teamBName}`;
-  const date = new Date().toLocaleDateString();
 
-  const dataToSend = {
-    GameID: gameID,
-    Date: date,
-    logs: scoreLogs
+  const [teamA, teamB] = logs[0].GameID.split(' vs ');
+  const data = {
+    GameID: logs[0].GameID,
+    Date: new Date().toLocaleDateString(),
+    logs
   };
 
   try {
     startLoadingAnimation();
-
     await fetch(
-      'https://script.google.com/macros/s/AKfycbwgDHDYawscG5k1v0dbjse8xtm7WUcGZtQRACK-9dxjerY3VsvkkeL4QBGIRwXsqT85/exec',
+      'https://script.google.com/macros/s/AKfycbwQrVAvqtdsYgAcWhD7zel5hwoydkkGY1LLYno6dpevg_P_bqjD7cv2cwhCTR1yhTe5/exec',
       {
         method: 'POST',
         mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(dataToSend)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
       }
     );
-
     stopLoadingAnimation();
-    document.getElementById('successMessage').textContent = 'Data has been successfully exported!';
+    document.getElementById('successMessage').textContent =
+      'Data has been successfully exported!';
     document.getElementById('successMessage').style.display = 'block';
 
-    sessionStorage.removeItem('scoreLogs');
-    // Optionally reset scoreboard, etc.
-    // teamAScore = 0;
-    // teamBScore = 0;
-  } catch (error) {
+    // Wipe after 5 s
+    setTimeout(() => {
+      localStorage.removeItem('scoreLogs');
+    }, 5000);
+  } catch (err) {
     stopLoadingAnimation();
-    alert('Error exporting data: ' + error.message);
+    alert('Error exporting data: ' + err.message);
   }
 }
 
-/*************************************************
- * Timer Functionality with Persistence
- *************************************************/
-
-// Global variables
-let countdownInterval;
-let isRunning = false;
-let endTime = 0; // Will hold the absolute end timestamp (in ms)
-
-// Load previous timer state from localStorage
+/* ============================================
+   TIMER (Persists state in localStorage)
+   ============================================ */
 function loadTimerState() {
-  const storedEndTime = localStorage.getItem('timerEndTime');
-  const storedIsRunning = localStorage.getItem('timerRunning');
-
-  if (storedEndTime) {
-    // Restore the saved endTime (in ms)
-    endTime = parseInt(storedEndTime, 10);
-  } else {
-    // Default: 20 minutes from "now" if nothing is stored
-    endTime = Date.now() + (20 * 60 * 1000);
-  }
-
-  // Restore running state
-  isRunning = (storedIsRunning === 'true');
-
-  // Always update the display once on page load
+  const storedEnd = localStorage.getItem('timerEndTime');
+  endTime = storedEnd ? parseInt(storedEnd, 10) : Date.now() + 20 * 60000;
+  isRunning = localStorage.getItem('timerRunning') === 'true';
   updateTimerDisplay();
-
-  // If it was running, resume the countdown
-  if (isRunning) {
-    startCountdown();
-  }
+  if (isRunning) startCountdown();
 }
-
-// Save the timer state to localStorage
-function saveTimerState() {
-  localStorage.setItem('timerEndTime', endTime.toString());
-  localStorage.setItem('timerRunning', isRunning ? 'true' : 'false');
-}
-
-// Calculate how many seconds remain
-function getTimeRemaining() {
-  const now = Date.now();
-  // Difference (in milliseconds); convert to whole seconds
-  return Math.floor((endTime - now) / 1000);
-}
-
-// Play a short beep
-function playBeep() {
-  const beep = new Audio('beep-07a.wav');
-  beep.play();
-}
-
-// Play a series of beeps when countdown hits zero
-function playEndBeep() {
-  let count = 0;
-  function beepLoop() {
-    if (count < 10) {
-      const beep = new Audio('beep-07a.wav');
-      beep.play();
-      count++;
-      setTimeout(beepLoop, 1000);
-    }
-  }
-  beepLoop();
-}
-
-// Update the timer display in the DOM
 function updateTimerDisplay() {
-  const countdownSeconds = getTimeRemaining();
-  const timerDisplay = document.getElementById('timerDisplay');
-
-  // Convert to MM:SS (or show negative if below zero)
-  const absSeconds = Math.abs(countdownSeconds);
-  const mins = Math.floor(absSeconds / 60).toString().padStart(2, '0');
-  const secs = (absSeconds % 60).toString().padStart(2, '0');
-
-  let timeString = `${mins}:${secs}`;
-
-  if (countdownSeconds < 0) {
-    timeString = `-${timeString}`;
-    timerDisplay.classList.add('timer-negative');
-  } else {
-    timerDisplay.classList.remove('timer-negative');
-  }
-
-  timerDisplay.textContent = timeString;
+  const remain = endTime - Date.now();
+  const m = Math.max(0, Math.floor(remain / 60000));
+  const s = Math.max(0, Math.floor((remain % 60000) / 1000));
+  document.getElementById('timer').textContent =
+    `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
-
-// Start (or resume) the countdown
 function startCountdown() {
-  isRunning = true;
-  document.getElementById('playPauseBtn').textContent = "Pause";
-  document.getElementById('timerColumn').classList.add('timer-running');
-  document.getElementById('timerColumn').classList.remove('timer-paused');
-  saveTimerState();
-
-  // Clear any existing interval to avoid duplicates
   clearInterval(countdownInterval);
-
-  // Update display every second
   countdownInterval = setInterval(() => {
-    updateTimerDisplay();
-
-    // If time is up or below zero, stop
-    if (getTimeRemaining() <= 0) {
+    if (Date.now() >= endTime) {
       clearInterval(countdownInterval);
       isRunning = false;
-      saveTimerState();
-      playEndBeep();
     }
+    updateTimerDisplay();
   }, 1000);
 }
-
-// Toggle play/pause
-function toggleTimer() {
+function startStopTimer() {
   if (isRunning) {
-    // Pause
-    clearInterval(countdownInterval);
     isRunning = false;
-    document.getElementById('playPauseBtn').textContent = "Play";
-    document.getElementById('timerColumn').classList.remove('timer-running');
-    document.getElementById('timerColumn').classList.add('timer-paused');
-    playBeep();
+    clearInterval(countdownInterval);
   } else {
-    // Resume
     isRunning = true;
-    playBeep();
+    endTime = Date.now() + 20 * 60000;
     startCountdown();
   }
-  saveTimerState();
+  localStorage.setItem('timerEndTime', endTime.toString());
+  localStorage.setItem('timerRunning', isRunning);
 }
 
-// Reset the countdown to a new value
-function resetCountdown() {
-  clearInterval(countdownInterval);
-  isRunning = false;
-  document.getElementById('playPauseBtn').textContent = "Play";
-  document.getElementById('timerColumn').classList.remove('timer-running', 'timer-paused');
+/* ============================================
+   NEW ► Load previous score log (if any)
+   ============================================ */
+function loadPreviousLogs() {
+  const logs = JSON.parse(localStorage.getItem('scoreLogs')) || [];
+  if (logs.length === 0) return;
 
-  // Grab user input in minutes, default to 20 if empty
-  const newTime = parseInt(document.getElementById('countdownTime').value, 10) || 20;
-  // Set new end time (now + X minutes)
-  endTime = Date.now() + (newTime * 60 * 1000);
+  // Refill team names
+  const [teamAName, teamBName] = logs[0].GameID.split(' vs ');
+  document.getElementById('teamA').value = teamAName;
+  document.getElementById('teamB').value = teamBName;
 
-  saveTimerState();
-  updateTimerDisplay();
+  // Re-create every row & recalc scores
+  teamAScore = 0;
+  teamBScore = 0;
+  logs.forEach(l => {
+    const teamLetter = l.Team === teamAName ? 'A' : 'B';
+    appendScoreRow(l.scoreID, teamLetter, l.Scorer, l.Assist);
+    teamLetter === 'A' ? teamAScore++ : teamBScore++;
+  });
+  updateScoreboardDisplay();
 }
 
-// Initialize once the page loads
-window.addEventListener('DOMContentLoaded', loadTimerState);
+// ---------- Scoreboard display helper ----------
+function updateScoreboardDisplay() {
+  const a = document.getElementById('scoreA');
+  const b = document.getElementById('scoreB');
+  if (a) a.textContent = teamAScore;
+  if (b) b.textContent = teamBScore;
+}
+
+/* ============================================
+   Loading animation
+   ============================================ */
+let loadingInterval;
+function startLoadingAnimation() {
+  const wrap = document.getElementById('loadingAnimation');
+  const dots = document.getElementById('dots');
+  let n = 0;
+  wrap.style.display = 'inline-block';
+  loadingInterval = setInterval(() => {
+    n = (n + 1) % 4;
+    dots.textContent = '.'.repeat(n);
+  }, 500);
+}
+function stopLoadingAnimation() {
+  clearInterval(loadingInterval);
+  document.getElementById('dots').textContent = '';
+  document.getElementById('loadingAnimation').style.display = 'none';
+}
+
+// ---------- Initial page load ----------
+window.addEventListener('load', () => {
+  loadTimerState();
+  loadPreviousLogs();           // ← new automatic restoration
+});
