@@ -111,7 +111,7 @@ body {
   float: right;
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 40px;
   cursor: pointer;
 }
 
@@ -126,14 +126,14 @@ table {
 }
 
 td {
-  border: 1px solid var(--color-brand);
+  border: 1.5px solid var(--color-brand);
   padding: 8px;
   text-align: center;
   background: var(--color-bg-white);
 }
 
 th {
-  border: 1px solid var(--color-brand);
+  border: 1.5px solid var(--color-brand);
   background: var(--color-headings-bg);
   padding: 8px;
   color: var(--color-brand);
@@ -171,6 +171,7 @@ textarea {
 select {
   width: 90%;
   border-radius: 8px;
+  border: 1.5px solid var(--color-brand)
 }
 
 /* ======================== */
