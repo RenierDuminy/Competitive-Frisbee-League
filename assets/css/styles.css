@@ -293,3 +293,17 @@ input[type="button"]:hover,
 .timer-paused {
   background-color: lightcoral;
 }
+
+/* ======================== */
+/*     Mobile browsers      */
+/* ======================== */
+
+table { overflow-x: auto; display: block; white-space: nowrap; }
+
+@media (max-width: 768px) {
+  .form-container { max-width: 95%; }
+  .timer-display { font-size: 2em; }
+  body { padding: 0.5rem; }
+  /* Increase small font sizes */
+  #scoringTableBody td, #scoringTableBody th { font-size: 12px; }
+}
