@@ -238,7 +238,6 @@ input[type="button"]:hover,
   justify-content: space-evenly;
   gap: 15px;
   width: 100%;
-  padding: ;
 }
 
 /* Add score buttons */
@@ -246,6 +245,8 @@ input[type="button"]:hover,
   display: center;
   justify-content: space-between;
   gap: 15px;
+  padding: 1.5em 0 1.5em;
+
 }
 
 /* Final submit button */

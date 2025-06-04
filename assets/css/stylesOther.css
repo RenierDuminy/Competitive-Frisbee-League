@@ -1,15 +1,7 @@
-/* styles.css */
-
 /* Link to main CSS file */
 @import url("styles.css");
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+
 
 /* Not sure - Body formatting */
 body {
@@ -331,165 +323,6 @@ input[type="button"]:hover,
   pointer-events: none;
 }
 
-/* ======================== */
-/*          Popup           */
-/* ======================== */
-.popup {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--color-bg-white);
-  padding: 10px;
-  box-shadow: 0 0 10px var(--color-shadow);
-  z-index: 100;
-  border-radius: 15px;
-}
-
-.popup select,
-.popup input[type="button"] {
-  width: 100%;
-  margin-top: 10px;
-  border-radius: 10px;
-}
-
-.popup label {
-  display: inline-block;
-  margin-top: 10px;
-}
-
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 99;
-}
-
-/* ======================== */
-/*  Team Lists Side by Side */
-/* ======================== */
-.team-list-container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  margin-top: 5px;
-}
-
-.team-list-container > div {
-  flex: 1;
-  margin: 0 10px;
-}
-
-/* ======================== */
-/*   Reduced Font in Table  */
-/* ======================== */
-#scoringTableBody td,
-#scoringTableBody th {
-  font-size: 12px;
-}
-
-/* ======================== */
-/*   Button Container       */
-/* ======================== */
-.add-score-buttons {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-}
-
-/* ======================== */
-/*   Responsive Design      */
-/* ======================== */
-@media (max-width: 600px) {
-  .logo-title-container {
-    flex-direction: column;
-  }
-
-  .logo {
-    margin-right: 0;
-  }
-
-  .team-list-container {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .team-list-container > div {
-    margin: 10px 0;
-  }
-}
-
-/* ======================== */
-/*   Logged Data Display    */
-/* ======================== */
-#loggedDataContainer {
-  max-width: 700px;
-  margin: 20px auto;
-  background: var(--color-bg-white);
-  padding: 20px;
-  border-radius: 8px;
-  border: 2px solid var(--color-brand);
-}
-
-#loggedDataTable {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-#loggedDataTable th,
-#loggedDataTable td {
-  border: 1px solid var(--color-brand);
-  padding: 10px;
-  text-align: center;
-}
-
-#loggedDataTable th {
-  background: var(--color-headings-bg);
-  color: var(--color-brand);
-}
-
-/* ======================== */
-/*    Success Message       */
-/* ======================== */
-#successMessage {
-  max-width: 700px;
-  margin: 20px auto;
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-  padding: 15px;
-  border-radius: 4px;
-  font-size: 16px;
-  text-align: center;
-}
-
-/* ======================== */
-/*  New Timer-Related CSS   */
-/* ======================== */
-
-/* General timer display styling */
-.timer-display {
-  font-size: 3em;
-}
-
-/* When the countdown is below zero, text becomes red */
-.timer-negative {
-  color: red;
-}
-
-/* Timer column background while running */
-.timer-running {
-  background-color: lightgreen;
-}
-
-/* Timer column background while paused */
-.timer-paused {
-  background-color: lightcoral;
-}
-
 .progress-container {
   position: relative;
   max-width: 800px;    /* adjust to your bar’s width */
@@ -509,4 +342,9 @@ input[type="button"]:hover,
   border-right: 8px solid transparent;
   border-bottom: 12px solid red; /* points down */
   transform: translateX(-50%);
+}
+
+.content-image{
+  max-width: 100%;
+  object-fit: contain;
 }

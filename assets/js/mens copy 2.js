@@ -582,7 +582,7 @@ class TimerManager {
       timerDisplay.classList.remove('timer-negative');
     }
 
-    timerDisplay.textContent = timeString;
+    document.getElementById('time').value = new Date().toLocaleString();
   }
 
   start() {
@@ -1375,6 +1375,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     Utils.showNotification('Failed to initialize application. Please refresh the page.', 'error');
   }
 });
+
+const noSleep = new NoSleep();
+
+// Enable wake lock (must be triggered by user interaction)
+document.getElementById('enableWakelock').addEventListener('click', function() {
+  noSleep.enable();
+  console.log('Wake lock enabled');
+});
+
+// Disable wake lock
+function disableWakelock() {
+  noSleep.disable();
+  console.log('Wake lock disabled');
+}
 
 // Make app instance available globally for debugging
 window.ScorekeeperApp = app;
