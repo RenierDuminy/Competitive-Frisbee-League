@@ -1,6 +1,6 @@
 /**
- * Improved Scorekeeping Application
- * Refactored for better organization, error handling, and maintainability
+ * Reload-Proof Scorekeeping Application
+ * Enhanced with comprehensive state persistence
  */
 
 // =====================================================
@@ -12,10 +12,14 @@ const CONFIG = {
   LOADING_ANIMATION_INTERVAL: 500,
   BEEP_COUNT: 10,
   BEEP_INTERVAL: 1000,
+  AUTO_SAVE_INTERVAL: 2000, // Auto-save every 2 seconds
   STORAGE_KEYS: {
     SCORE_LOGS: 'scoreLogs',
     TIMER_END_TIME: 'timerEndTime',
-    TIMER_RUNNING: 'timerRunning'
+    TIMER_RUNNING: 'timerRunning',
+    GAME_STATE: 'gameState',
+    TEAMS_DATA: 'teamsData',
+    LAST_SAVE: 'lastSave'
   },
   AUDIO_FILES: {
     BEEP: 'beep-07a.wav'
@@ -62,7 +66,6 @@ const Utils = {
    * Show user notification
    */
   showNotification: (message, type = 'info') => {
-    // For now, use alert - could be enhanced with custom notifications
     if (type === 'error') {
       console.error(message);
       alert(`Error: ${message}`);
@@ -91,38 +94,254 @@ const Utils = {
     });
     if (content) element.textContent = content;
     return element;
+  },
+
+  /**
+   * Generate unique ID
+   */
+  generateId: () => {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
   }
 };
 
 // =====================================================
-// DATA MANAGER - Handles all data operations
+// PERSISTENCE MANAGER - Handles all data persistence
+// =====================================================
+class PersistenceManager {
+  constructor() {
+    this.autoSaveInterval = null;
+    this.lastSaveTime = 0;
+  }
+
+  /**
+   * Save data to localStorage with error handling
+   */
+  saveToStorage(key, data) {
+    try {
+      const serializedData = JSON.stringify(data);
+      localStorage.setItem(key, serializedData);
+      this.lastSaveTime = Date.now();
+      localStorage.setItem(CONFIG.STORAGE_KEYS.LAST_SAVE, this.lastSaveTime.toString());
+      return true;
+    } catch (error) {
+      console.error(`Failed to save ${key}:`, error);
+      // Try to free up space by removing old data
+      this.cleanupOldData();
+      try {
+        const serializedData = JSON.stringify(data);
+        localStorage.setItem(key, serializedData);
+        return true;
+      } catch (retryError) {
+        console.error(`Retry failed for ${key}:`, retryError);
+        return false;
+      }
+    }
+  }
+
+  /**
+   * Load data from localStorage
+   */
+  loadFromStorage(key, fallback = null) {
+    try {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : fallback;
+    } catch (error) {
+      console.error(`Failed to load ${key}:`, error);
+      return fallback;
+    }
+  }
+
+  /**
+   * Save complete game state
+   */
+  saveGameState(gameState) {
+    return this.saveToStorage(CONFIG.STORAGE_KEYS.GAME_STATE, {
+      ...gameState,
+      timestamp: Date.now()
+    });
+  }
+
+  /**
+   * Load complete game state
+   */
+  loadGameState() {
+    const defaultState = {
+      teamAScore: 0,
+      teamBScore: 0,
+      teamAName: '',
+      teamBName: '',
+      teamAPlayers: '',
+      teamBPlayers: '',
+      gameTime: '',
+      scoreLogs: [],
+      timestamp: Date.now()
+    };
+
+    return this.loadFromStorage(CONFIG.STORAGE_KEYS.GAME_STATE, defaultState);
+  }
+
+  /**
+   * Save teams data with expiration
+   */
+  saveTeamsData(teamsData) {
+    const dataWithExpiry = {
+      data: teamsData,
+      timestamp: Date.now(),
+      expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+    };
+    return this.saveToStorage(CONFIG.STORAGE_KEYS.TEAMS_DATA, dataWithExpiry);
+  }
+
+  /**
+   * Load teams data (check expiration)
+   */
+  loadTeamsData() {
+    const storedData = this.loadFromStorage(CONFIG.STORAGE_KEYS.TEAMS_DATA);
+    
+    if (!storedData) return null;
+    
+    // Check if data has expired
+    if (Date.now() > storedData.expiresAt) {
+      localStorage.removeItem(CONFIG.STORAGE_KEYS.TEAMS_DATA);
+      return null;
+    }
+    
+    return storedData.data;
+  }
+
+  /**
+   * Start auto-save functionality
+   */
+  startAutoSave(saveCallback) {
+    if (this.autoSaveInterval) {
+      clearInterval(this.autoSaveInterval);
+    }
+
+    this.autoSaveInterval = setInterval(() => {
+      if (typeof saveCallback === 'function') {
+        saveCallback();
+      }
+    }, CONFIG.AUTO_SAVE_INTERVAL);
+  }
+
+  /**
+   * Stop auto-save
+   */
+  stopAutoSave() {
+    if (this.autoSaveInterval) {
+      clearInterval(this.autoSaveInterval);
+      this.autoSaveInterval = null;
+    }
+  }
+
+  /**
+   * Clean up old data to free space
+   */
+  cleanupOldData() {
+    try {
+      // Remove expired teams data
+      const teamsData = this.loadFromStorage(CONFIG.STORAGE_KEYS.TEAMS_DATA);
+      if (teamsData && Date.now() > teamsData.expiresAt) {
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.TEAMS_DATA);
+      }
+
+      // Remove very old game states (older than 7 days)
+      const gameState = this.loadFromStorage(CONFIG.STORAGE_KEYS.GAME_STATE);
+      if (gameState && gameState.timestamp && (Date.now() - gameState.timestamp) > (7 * 24 * 60 * 60 * 1000)) {
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.GAME_STATE);
+      }
+    } catch (error) {
+      console.error('Cleanup failed:', error);
+    }
+  }
+
+  /**
+   * Get storage usage info
+   */
+  getStorageInfo() {
+    let totalSize = 0;
+    let itemCount = 0;
+
+    for (let key in localStorage) {
+      if (localStorage.hasOwnProperty(key)) {
+        totalSize += localStorage[key].length;
+        itemCount++;
+      }
+    }
+
+    return {
+      totalSize: totalSize,
+      itemCount: itemCount,
+      lastSave: this.loadFromStorage(CONFIG.STORAGE_KEYS.LAST_SAVE)
+    };
+  }
+
+  /**
+   * Clear all app data
+   */
+  clearAllData() {
+    Object.values(CONFIG.STORAGE_KEYS).forEach(key => {
+      localStorage.removeItem(key);
+    });
+    sessionStorage.clear();
+  }
+}
+
+// =====================================================
+// DATA MANAGER - Enhanced with persistence
 // =====================================================
 class DataManager {
-  constructor() {
+  constructor(persistenceManager) {
+    this.persistenceManager = persistenceManager;
     this.teamsData = {};
     this.scoreLogs = [];
-    this.loadScoreLogs();
+    this.gameState = {};
+    this.isDirty = false; // Track if data needs saving
+    
+    this.loadAllData();
   }
 
   /**
-   * Load score logs from storage
+   * Load all persisted data
    */
-  loadScoreLogs() {
-    this.scoreLogs = Utils.safeJsonParse(
-      sessionStorage.getItem(CONFIG.STORAGE_KEYS.SCORE_LOGS),
-      []
-    );
-  }
-
-  /**
-   * Save score logs to storage
-   */
-  saveScoreLogs() {
-    try {
-      sessionStorage.setItem(CONFIG.STORAGE_KEYS.SCORE_LOGS, JSON.stringify(this.scoreLogs));
-    } catch (e) {
-      Utils.showNotification('Failed to save score logs', 'error');
+  loadAllData() {
+    // Load game state
+    this.gameState = this.persistenceManager.loadGameState();
+    this.scoreLogs = this.gameState.scoreLogs || [];
+    
+    // Load teams data
+    const cachedTeamsData = this.persistenceManager.loadTeamsData();
+    if (cachedTeamsData) {
+      this.teamsData = cachedTeamsData;
     }
+  }
+
+  /**
+   * Save current state
+   */
+  saveCurrentState() {
+    if (!this.isDirty) return;
+
+    const success = this.persistenceManager.saveGameState(this.gameState);
+    if (success) {
+      this.isDirty = false;
+    }
+    return success;
+  }
+
+  /**
+   * Mark data as dirty (needs saving)
+   */
+  markDirty() {
+    this.isDirty = true;
+  }
+
+  /**
+   * Update game state
+   */
+  updateGameState(updates) {
+    Object.assign(this.gameState, updates);
+    this.markDirty();
   }
 
   /**
@@ -130,7 +349,8 @@ class DataManager {
    */
   addScoreLog(logEntry) {
     this.scoreLogs.push(logEntry);
-    this.saveScoreLogs();
+    this.gameState.scoreLogs = this.scoreLogs;
+    this.markDirty();
   }
 
   /**
@@ -140,7 +360,8 @@ class DataManager {
     const index = this.scoreLogs.findIndex(log => log.scoreID === scoreID);
     if (index !== -1) {
       Object.assign(this.scoreLogs[index], updates);
-      this.saveScoreLogs();
+      this.gameState.scoreLogs = this.scoreLogs;
+      this.markDirty();
       return true;
     }
     return false;
@@ -158,7 +379,8 @@ class DataManager {
    */
   clearScoreLogs() {
     this.scoreLogs = [];
-    sessionStorage.removeItem(CONFIG.STORAGE_KEYS.SCORE_LOGS);
+    this.gameState.scoreLogs = [];
+    this.markDirty();
   }
 
   /**
@@ -173,20 +395,44 @@ class DataManager {
    */
   setTeamsData(data) {
     this.teamsData = data || {};
+    this.persistenceManager.saveTeamsData(this.teamsData);
+  }
+
+  /**
+   * Get current game state
+   */
+  getGameState() {
+    return this.gameState;
+  }
+
+  /**
+   * Reset game state
+   */
+  resetGameState() {
+    this.gameState = {
+      teamAScore: 0,
+      teamBScore: 0,
+      teamAName: '',
+      teamBName: '',
+      teamAPlayers: '',
+      teamBPlayers: '',
+      gameTime: '',
+      scoreLogs: [],
+      timestamp: Date.now()
+    };
+    this.scoreLogs = [];
+    this.markDirty();
   }
 }
 
 // =====================================================
-// API MANAGER - Handles all API communications
+// API MANAGER - Same as before
 // =====================================================
 class ApiManager {
   constructor() {
     this.baseUrl = CONFIG.API_URL;
   }
 
-  /**
-   * Fetch teams data from API
-   */
   async fetchTeams() {
     try {
       const response = await fetch(this.baseUrl);
@@ -203,9 +449,6 @@ class ApiManager {
     }
   }
 
-  /**
-   * Submit score data to API
-   */
   async submitScores(dataToSend) {
     try {
       const response = await fetch(this.baseUrl, {
@@ -217,8 +460,6 @@ class ApiManager {
         body: JSON.stringify(dataToSend)
       });
 
-      // Note: no-cors mode means we can't check response status
-      // We assume success if no error is thrown
       return true;
     } catch (error) {
       console.error("Error submitting scores:", error);
@@ -228,16 +469,13 @@ class ApiManager {
 }
 
 // =====================================================
-// AUDIO MANAGER - Handles audio functionality
+// AUDIO MANAGER - Same as before
 // =====================================================
 class AudioManager {
   constructor() {
     this.audioCache = new Map();
   }
 
-  /**
-   * Play audio with error handling
-   */
   async playAudio(audioFile) {
     try {
       let audio = this.audioCache.get(audioFile);
@@ -247,18 +485,13 @@ class AudioManager {
         this.audioCache.set(audioFile, audio);
       }
 
-      // Reset audio to beginning
       audio.currentTime = 0;
       await audio.play();
     } catch (error) {
       console.warn(`Could not play audio ${audioFile}:`, error);
-      // Fallback: could use Web Audio API beep or just skip
     }
   }
 
-  /**
-   * Play a series of beeps
-   */
   async playBeepSequence(count = CONFIG.BEEP_COUNT, interval = CONFIG.BEEP_INTERVAL) {
     for (let i = 0; i < count; i++) {
       await this.playAudio(CONFIG.AUDIO_FILES.BEEP);
@@ -270,75 +503,79 @@ class AudioManager {
 }
 
 // =====================================================
-// TIMER MANAGER - Handles timer functionality
+// TIMER MANAGER - Fixed with proper time tracking
 // =====================================================
 class TimerManager {
-  constructor(audioManager) {
+  constructor(audioManager, persistenceManager) {
     this.audioManager = audioManager;
+    this.persistenceManager = persistenceManager;
     this.countdownInterval = null;
     this.isRunning = false;
-    this.endTime = 0;
+    this.remainingTime = CONFIG.DEFAULT_TIMER_MINUTES * 60; // seconds remaining
     
+    this.preloadAudio();
     this.loadTimerState();
   }
 
-  /**
-   * Load timer state from localStorage
-   */
-  loadTimerState() {
-    const storedEndTime = localStorage.getItem(CONFIG.STORAGE_KEYS.TIMER_END_TIME);
-    const storedIsRunning = localStorage.getItem(CONFIG.STORAGE_KEYS.TIMER_RUNNING);
+  preloadAudio() {
+    // Preload the beep audio file
+    try {
+      const audio = new Audio(CONFIG.AUDIO_FILES.BEEP);
+      audio.preload = 'auto';
+      audio.load();
+      // Cache it in the audio manager
+      this.audioManager.audioCache.set(CONFIG.AUDIO_FILES.BEEP, audio);
+    } catch (error) {
+      console.warn('Failed to preload timer beep audio:', error);
+    }
+  }
 
-    if (storedEndTime) {
-      this.endTime = parseInt(storedEndTime, 10);
-    } else {
-      this.endTime = Date.now() + (CONFIG.DEFAULT_TIMER_MINUTES * 60 * 1000);
+  loadTimerState() {
+    const storedRemainingTime = this.persistenceManager.loadFromStorage('timerRemainingTime');
+    const storedIsRunning = this.persistenceManager.loadFromStorage(CONFIG.STORAGE_KEYS.TIMER_RUNNING);
+    const storedLastUpdate = this.persistenceManager.loadFromStorage('timerLastUpdate');
+
+    if (storedRemainingTime !== null) {
+      this.remainingTime = parseInt(storedRemainingTime, 10);
     }
 
-    this.isRunning = (storedIsRunning === 'true');
+    this.isRunning = (storedIsRunning === true || storedIsRunning === 'true');
+
+    // If timer was running when page was closed, calculate elapsed time
+    if (this.isRunning && storedLastUpdate) {
+      const elapsedSeconds = Math.floor((Date.now() - parseInt(storedLastUpdate, 10)) / 1000);
+      this.remainingTime = Math.max(0, this.remainingTime - elapsedSeconds);
+    }
+
     this.updateDisplay();
 
-    if (this.isRunning) {
+    if (this.isRunning && this.remainingTime > 0) {
       this.start();
+    } else if (this.remainingTime <= 0 && this.isRunning) {
+      // Timer expired while away
+      this.stop();
+      this.audioManager.playBeepSequence();
     }
   }
 
-  /**
-   * Save timer state to localStorage
-   */
   saveTimerState() {
-    try {
-      localStorage.setItem(CONFIG.STORAGE_KEYS.TIMER_END_TIME, this.endTime.toString());
-      localStorage.setItem(CONFIG.STORAGE_KEYS.TIMER_RUNNING, this.isRunning ? 'true' : 'false');
-    } catch (e) {
-      console.warn('Failed to save timer state:', e);
-    }
+    this.persistenceManager.saveToStorage('timerRemainingTime', this.remainingTime);
+    this.persistenceManager.saveToStorage(CONFIG.STORAGE_KEYS.TIMER_RUNNING, this.isRunning);
+    this.persistenceManager.saveToStorage('timerLastUpdate', Date.now());
   }
 
-  /**
-   * Get remaining time in seconds
-   */
-  getTimeRemaining() {
-    const now = Date.now();
-    return Math.floor((this.endTime - now) / 1000);
-  }
-
-  /**
-   * Update timer display
-   */
   updateDisplay() {
-    const countdownSeconds = this.getTimeRemaining();
     const timerDisplay = document.getElementById('timerDisplay');
     
     if (!timerDisplay) return;
 
-    const absSeconds = Math.abs(countdownSeconds);
+    const absSeconds = Math.abs(this.remainingTime);
     const mins = Math.floor(absSeconds / 60).toString().padStart(2, '0');
     const secs = (absSeconds % 60).toString().padStart(2, '0');
 
     let timeString = `${mins}:${secs}`;
 
-    if (countdownSeconds < 0) {
+    if (this.remainingTime < 0) {
       timeString = `-${timeString}`;
       timerDisplay.classList.add('timer-negative');
     } else {
@@ -348,33 +585,32 @@ class TimerManager {
     timerDisplay.textContent = timeString;
   }
 
-  /**
-   * Start the timer
-   */
   start() {
+    if (this.isRunning) return; // Already running
+    
     this.isRunning = true;
     this.updateUI();
     this.saveTimerState();
 
-    // Clear any existing interval
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
     }
 
     this.countdownInterval = setInterval(() => {
+      this.remainingTime--;
       this.updateDisplay();
+      this.saveTimerState();
 
-      if (this.getTimeRemaining() <= 0) {
+      if (this.remainingTime <= 0) {
         this.stop();
         this.audioManager.playBeepSequence();
       }
     }, 1000);
   }
 
-  /**
-   * Stop the timer
-   */
   stop() {
+    if (!this.isRunning) return; // Already stopped
+    
     this.isRunning = false;
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
@@ -384,9 +620,6 @@ class TimerManager {
     this.saveTimerState();
   }
 
-  /**
-   * Toggle timer play/pause
-   */
   toggle() {
     if (this.isRunning) {
       this.stop();
@@ -397,20 +630,14 @@ class TimerManager {
     }
   }
 
-  /**
-   * Reset timer with new duration
-   */
   reset(minutes = CONFIG.DEFAULT_TIMER_MINUTES) {
     this.stop();
-    this.endTime = Date.now() + (minutes * 60 * 1000);
+    this.remainingTime = minutes * 60;
     this.saveTimerState();
     this.updateDisplay();
     this.updateUI();
   }
 
-  /**
-   * Update timer UI elements
-   */
   updateUI() {
     const playPauseBtn = document.getElementById('playPauseBtn');
     const timerColumn = document.getElementById('timerColumn');
@@ -427,16 +654,13 @@ class TimerManager {
 }
 
 // =====================================================
-// LOADING MANAGER - Handles loading animations
+// LOADING MANAGER - Same as before
 // =====================================================
 class LoadingManager {
   constructor() {
     this.loadingInterval = null;
   }
 
-  /**
-   * Start loading animation
-   */
   start() {
     const loadingAnimation = document.getElementById('loadingAnimation');
     const dots = document.getElementById('dots');
@@ -452,9 +676,6 @@ class LoadingManager {
     }, CONFIG.LOADING_ANIMATION_INTERVAL);
   }
 
-  /**
-   * Stop loading animation
-   */
   stop() {
     const loadingAnimation = document.getElementById('loadingAnimation');
     const dots = document.getElementById('dots');
@@ -470,23 +691,25 @@ class LoadingManager {
 }
 
 // =====================================================
-// MAIN APPLICATION CLASS
+// MAIN APPLICATION CLASS - Enhanced with state restoration
 // =====================================================
 class ScorekeeperApp {
   constructor() {
     // Initialize managers
-    this.dataManager = new DataManager();
+    this.persistenceManager = new PersistenceManager();
+    this.dataManager = new DataManager(this.persistenceManager);
     this.apiManager = new ApiManager();
     this.audioManager = new AudioManager();
     this.loadingManager = new LoadingManager();
-    this.timerManager = new TimerManager(this.audioManager);
+    this.timerManager = new TimerManager(this.audioManager, this.persistenceManager);
     
     // Application state
     this.teamAScore = 0;
     this.teamBScore = 0;
     this.currentEditID = null;
+    this.isRestoring = false;
     
-    // Bind methods to preserve context
+    // Bind methods
     this.handleTeamChange = this.handleTeamChange.bind(this);
     this.handleSaveScore = this.handleSaveScore.bind(this);
     this.handleSubmitScore = this.handleSubmitScore.bind(this);
@@ -494,24 +717,36 @@ class ScorekeeperApp {
     this.handleTimerReset = this.handleTimerReset.bind(this);
     this.openPopup = this.openPopup.bind(this);
     this.closePopup = this.closePopup.bind(this);
+    this.autoSave = this.autoSave.bind(this);
+    this.handleBeforeUnload = this.handleBeforeUnload.bind(this);
   }
 
   /**
-   * Initialize the application
+   * Initialize the application with state restoration
    */
   async init() {
     try {
-      // Set initial time
-      const timeInput = document.getElementById('time');
-      if (timeInput) {
-        timeInput.value = new Date().toLocaleString();
-      }
-
-      // Load teams data
+      // Set up before unload handler
+      window.addEventListener('beforeunload', this.handleBeforeUnload);
+      
+      // Start auto-save
+      this.persistenceManager.startAutoSave(this.autoSave);
+      
+      // Check if we need to restore state
+      await this.checkAndRestoreState();
+      
+      // Load teams data (from cache or API)
       await this.loadTeams();
       
       // Setup event listeners
       this.setupEventListeners();
+      
+      // Set up page visibility handler for mobile
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          this.autoSave();
+        }
+      });
       
       Utils.showNotification('Application initialized successfully', 'success');
     } catch (error) {
@@ -520,18 +755,159 @@ class ScorekeeperApp {
   }
 
   /**
-   * Load teams from API
+   * Check and restore previous state
+   */
+  async checkAndRestoreState() {
+    const gameState = this.dataManager.getGameState();
+    
+    // If we have a recent state (less than 24 hours old), restore it
+    if (gameState.timestamp && (Date.now() - gameState.timestamp) < (24 * 60 * 60 * 1000)) {
+      this.isRestoring = true;
+      
+      // Show restore notification
+      const shouldRestore = confirm(
+        'Previous game data found. Would you like to restore your previous session?'
+      );
+      
+      if (shouldRestore) {
+        await this.restoreGameState(gameState);
+        Utils.showNotification('Previous session restored successfully', 'success');
+      } else {
+        this.dataManager.resetGameState();
+      }
+      
+      this.isRestoring = false;
+    }
+  }
+
+  /**
+   * Restore complete game state
+   */
+  async restoreGameState(gameState) {
+    // Restore scores
+    this.teamAScore = gameState.teamAScore || 0;
+    this.teamBScore = gameState.teamBScore || 0;
+    
+    // Restore team selections
+    const teamASelect = document.getElementById('teamA');
+    const teamBSelect = document.getElementById('teamB');
+    
+    if (teamASelect && gameState.teamAName) {
+      teamASelect.value = gameState.teamAName;
+    }
+    if (teamBSelect && gameState.teamBName) {
+      teamBSelect.value = gameState.teamBName;
+    }
+    
+    // Restore player lists
+    const teamAList = document.getElementById('teamAList');
+    const teamBList = document.getElementById('teamBList');
+    
+    if (teamAList && gameState.teamAPlayers) {
+      teamAList.value = gameState.teamAPlayers;
+    }
+    if (teamBList && gameState.teamBPlayers) {
+      teamBList.value = gameState.teamBPlayers;
+    }
+    
+    // Restore game time
+    const timeInput = document.getElementById('time');
+    if (timeInput && gameState.gameTime) {
+      timeInput.value = gameState.gameTime;
+    }
+    
+    // Restore score logs and rebuild table
+    if (gameState.scoreLogs && gameState.scoreLogs.length > 0) {
+      this.rebuildScoreTable(gameState.scoreLogs);
+    }
+  }
+
+  /**
+   * Rebuild score table from logs
+   */
+  rebuildScoreTable(scoreLogs) {
+    const scoringTableBody = document.getElementById('scoringTableBody');
+    if (!scoringTableBody) return;
+    
+    // Clear existing rows
+    scoringTableBody.innerHTML = '';
+    
+    // Add each score log to table
+    scoreLogs.forEach(logEntry => {
+      const row = this.createScoreRow(logEntry);
+      scoringTableBody.appendChild(row);
+    });
+  }
+
+  /**
+   * Auto-save current state
+   */
+  autoSave() {
+    if (this.isRestoring) return;
+    
+    // Capture current UI state
+    const currentState = {
+      teamAScore: this.teamAScore,
+      teamBScore: this.teamBScore,
+      teamAName: document.getElementById('teamA')?.value || '',
+      teamBName: document.getElementById('teamB')?.value || '',
+      teamAPlayers: document.getElementById('teamAList')?.value || '',
+      teamBPlayers: document.getElementById('teamBList')?.value || '',
+      gameTime: document.getElementById('time')?.value || '',
+      scoreLogs: this.dataManager.scoreLogs,
+      timestamp: Date.now()
+    };
+    
+    this.dataManager.updateGameState(currentState);
+    this.dataManager.saveCurrentState();
+  }
+
+  /**
+   * Handle before page unload
+   */
+  handleBeforeUnload(event) {
+    // Perform final save
+    this.autoSave();
+    
+    // If there's unsaved data, show warning
+    if (this.dataManager.isDirty || this.dataManager.scoreLogs.length > 0) {
+      const message = 'You have unsaved game data. Are you sure you want to leave?';
+      event.returnValue = message;
+      return message;
+    }
+  }
+
+  /**
+   * Load teams from API or cache
    */
   async loadTeams() {
     try {
-      const teamsData = await this.apiManager.fetchTeams();
-      this.dataManager.setTeamsData(teamsData);
-      this.populateTeamOptions(teamsData);
+      // Try to load from cache first
+      const cachedTeams = this.dataManager.getTeamsData();
+      if (cachedTeams && Object.keys(cachedTeams).length > 0) {
+        this.populateTeamOptions(cachedTeams);
+        
+        // Load fresh data in background
+        this.loadTeamsFromAPI().catch(error => {
+          console.warn('Background team loading failed:', error);
+        });
+      } else {
+        // No cache, load from API
+        await this.loadTeamsFromAPI();
+      }
     } catch (error) {
       Utils.showNotification(`Failed to load teams: ${error.message}`, 'error');
-      // Continue with empty teams data for offline functionality
       this.dataManager.setTeamsData({});
     }
+  }
+
+  /**
+   * Load teams from API
+   */
+  async loadTeamsFromAPI() {
+    const teamsData = await this.apiManager.fetchTeams();
+    this.dataManager.setTeamsData(teamsData);
+    this.populateTeamOptions(teamsData);
   }
 
   /**
@@ -542,6 +918,10 @@ class ScorekeeperApp {
     const teamBSelect = document.getElementById('teamB');
     
     if (!teamASelect || !teamBSelect) return;
+
+    // Store current selections
+    const currentTeamA = teamASelect.value;
+    const currentTeamB = teamBSelect.value;
 
     // Clear existing options except the first one
     teamASelect.innerHTML = '<option value="">Select Team A</option>';
@@ -557,6 +937,10 @@ class ScorekeeperApp {
       teamASelect.appendChild(optionA);
       teamBSelect.appendChild(optionB);
     });
+
+    // Restore previous selections
+    if (currentTeamA) teamASelect.value = currentTeamA;
+    if (currentTeamB) teamBSelect.value = currentTeamB;
   }
 
   /**
@@ -568,11 +952,26 @@ class ScorekeeperApp {
     const teamBSelect = document.getElementById('teamB');
     
     if (teamASelect) {
-      teamASelect.addEventListener('change', () => this.handleTeamChange('teamA'));
+      teamASelect.addEventListener('change', () => {
+        this.handleTeamChange('teamA');
+        this.autoSave();
+      });
     }
     if (teamBSelect) {
-      teamBSelect.addEventListener('change', () => this.handleTeamChange('teamB'));
+      teamBSelect.addEventListener('change', () => {
+        this.handleTeamChange('teamB');
+        this.autoSave();
+      });
     }
+
+    // Auto-save on input changes
+    const autoSaveInputs = ['teamAList', 'teamBList', 'time'];
+    autoSaveInputs.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.addEventListener('input', Utils.debounce(this.autoSave, 1000));
+      }
+    });
 
     // Timer controls
     const playPauseBtn = document.getElementById('playPauseBtn');

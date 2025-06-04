@@ -8,15 +8,21 @@
   <title>Men's Res League Score Sheet</title>
   <link rel="icon" href="./page_icon.png" type="image/png"> 
   <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="preload" href="/images/hero.jpg" as="image">
 </head>
 
 <body>
   <div class="form-container">
-    <div class="logo-title-container">
-      <img src="assets/images/SU Comm - Universal logo.jpg" alt="Maties Ultimate Frisbee" class="logo">
-      <a href="index.html" class="home-button">Home</a>
-      <h2>Residence Frisbee League Men's Division</h2>
+
+    <div class="site-header">
+    <img src="assets/images/SU Comm - Universal logo.jpg" alt="Maties Ultimate Frisbee" class="header-image">
+    <a href="index.html" class="home-button">Home</a>
     </div>
+
+    <div class="site-title">
+    <h2>Internal Draft League</h2>
+    </div>
+
 
     <form id="scoreForm">
       <table>
@@ -56,8 +62,8 @@
           </td>
           
           <td class="timer-right">
-            <button type="button" class="add-score taller-button" id="resetBtn">Reset</button>
-            <button type="button" class="add-score taller-button" id="playPauseBtn">Play</button>
+            <button type="button" class="main-button taller-button" id="resetBtn">Reset</button>
+            <button type="button" class="main-button taller-button PausePlay-button" id="playPauseBtn">Play</button>
           </td>
         </tr>
       </table>
@@ -77,13 +83,11 @@
       </table>
 
       <!-- Add Score Buttons -->
-      <div class="add-score-buttons">
-        <button type="button" class="add-score taller-button" id="addScoreTeamA">
-          + Add Score for Team A
-        </button>
-        <button type="button" class="add-score" id="addScoreTeamB">
-          + Add Score for Team B
-        </button>
+      <div class="add-score-button">
+        <button type="button" class="main-button taller-button add-score" id="addScoreTeamA">
+          + Add Score for Team A </button>
+        <button type="button" class="main-button taller-button add-score" id="addScoreTeamB">
+          + Add Score for Team B </button>
       </div>
 
       <!-- Team List Section -->
@@ -102,9 +106,10 @@
       <div class="submit-section">
         <input type="button" value="Submit" id="submitBtn">
         <div id="loadingAnimation" style="display: none;">
-          Loading<span id="dots"></span>
+          Loading <span id="dots"></span>
         </div>
       </div>
+
     </form>
   </div>
 
