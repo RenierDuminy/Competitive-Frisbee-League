@@ -348,3 +348,33 @@ input[type="button"]:hover,
   max-width: 100%;
   object-fit: contain;
 }
+
+/* ======================== */
+/*     Links list           */
+/* ======================== */
+
+.links-list {
+  list-style: none;       /* remove bullets */
+  padding: 0;             /* remove default inset */
+  max-width: 400px;       /* optional: limit width */
+  margin: 2rem auto;      /* center & add vertical space */
+  font-family: Arial, sans-serif;
+}
+
+.links-list li {
+  margin-bottom: 1rem;    /* space between items */
+}
+
+.links-list a {
+  display: block;                     /* make full-width “buttons” */
+  padding: 0.75rem 1rem;              /* inner spacing */
+  background-color: #f0f0f0;          /* light grey background */
+  color: #333;                        /* dark text */
+  text-decoration: none;              /* remove underline */
+  border-radius: 4px;                 /* round corners */
+  transition: background-color 0.2s;  /* smooth hover */
+}
+
+.links-list a:hover {
+  background-color: #e0e0e0;          /* a bit darker on hover */
+}

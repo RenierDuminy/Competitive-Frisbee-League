@@ -7,7 +7,7 @@
 // CONSTANTS AND CONFIGURATION
 // =====================================================
 const CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycbwQrVAvqtdsYgAcWhD7zel5hwoydkkGY1LLYno6dpevg_P_bqjD7cv2cwhCTR1yhTe5/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbzcg2i_dSDPwpgs5aHZz6glU4K0z2K6A3CfNxrinzDDff9rYQ6uSA35Btp2hUebFU4/exec",
   DEFAULT_TIMER_MINUTES: 20,
   LOADING_ANIMATION_INTERVAL: 500,
   BEEP_COUNT: 10,

@@ -1,26 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <!-- Metadata and CSS styles -->
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Womens's Res League Score Sheet</title>
-  <link rel="icon" href="./page_icon.png" type="image/png"> 
+  <meta name="viewport" content="width=device-width, initial-scale=0.9">
+  <title>Women's Score Sheet</title>
+  <link rel="icon" href="./page_icon.png" type="image/png">
   <link rel="stylesheet" href="assets/css/styles.css">
-
-  <!-- Link to the external CSS file -->
-  <link rel="stylesheet" href="styles.css">
+  <link rel="preload" href="/images/hero.jpg" as="image">
 </head>
+
 <body>
   <div class="form-container">
-    <div class="logo-title-container">
-      <img src="assets/images/SU Comm - Universal logo.jpg" alt="Maties Ultimate Frisbee" class="logo">
-      <a href="index.html" class="home-button">Home</a>
-      <h2>Residence Frisbee League Women's Division</h2>
+
+    <div class="site-header">
+    <img src="assets/images/SU Comm - Universal logo.jpg" alt="Maties Ultimate Frisbee" class="header-image">
+    <a href="index.html" class="home-button">Home</a>
     </div>
 
+    <div class="site-title">
+    <h2>Women's Res League</h2>
+    </div>
+
+
     <form id="scoreForm">
-      <!-- Description Table (Team Selection Box) -->
       <table>
         <tr>
           <th>Team A</th>
@@ -39,16 +43,13 @@
           </td>
         </tr>
         <tr>
-          <th>Time</th>
+          <th>Time started</th>
           <td><input type="text" id="time" value="" readonly></td>
         </tr>
       </table>
 
-      <!-- Timer Table
+      <!-- Timer Table-->
       <table class="timer-table">
-        <tr>
-          <th colspan="2" class="timer-title">Game Timer</th>
-        </tr>
         <tr>
           <td class="timer-left" id="timerColumn">
             <div id="timerDisplay" class="timer-display">20:00</div>
@@ -58,12 +59,12 @@
           </td>
           
           <td class="timer-right">
-            <button type="button" class="add-score taller-button" onclick="resetCountdown()">Reset</button>
-            <button type="button" class="add-score taller-button" onclick="toggleTimer()" id="playPauseBtn">Play</button>
+            <button type="button" class="main-button taller-button" id="resetBtn">Reset</button>
+            <button type="button" class="main-button taller-button PausePlay-button" id="playPauseBtn">Play</button>
           </td>
         </tr>
       </table>
-       -->
+       
 
       <!-- Scoring Table -->
       <table>
@@ -79,13 +80,11 @@
       </table>
 
       <!-- Add Score Buttons -->
-      <div class="add-score-buttons">
-        <button type="button" class="add-score taller-button" onclick="openPopup('A')">
-          + Add Score for Team A
-        </button>
-        <button type="button" class="add-score" onclick="openPopup('B')">
-          + Add Score for Team B
-        </button>
+      <div class="add-score-button">
+        <button type="button" class="main-button taller-button add-score" id="addScoreTeamA">
+          + Add Score for Team A </button>
+        <button type="button" class="main-button taller-button add-score" id="addScoreTeamB">
+          + Add Score for Team B </button>
       </div>
 
       <!-- Team List Section -->
@@ -102,11 +101,12 @@
 
       <!-- Submit Section with Loading Animation -->
       <div class="submit-section">
-        <input type="button" value="Submit" onclick="submitScore()">
+        <input type="button" value="Submit" id="submitBtn">
         <div id="loadingAnimation" style="display: none;">
-          Loading<span id="dots"></span>
+          Loading <span id="dots"></span>
         </div>
       </div>
+
     </form>
   </div>
 
@@ -137,8 +137,8 @@
   <div class="popup" id="scorePopup">
     <button
       type="button"
-      onclick="closePopup()"
-      style="float: right; background: none; border: none; font-size: 16px; cursor: pointer;">
+      id="closePopupBtn"
+      style="float: right; background: none; border: none; font-size: 40px; cursor: pointer;">
       &times;
     </button>
 
@@ -156,10 +156,20 @@
       <option value="">Select Assist</option>
     </select>
 
-    <input type="button" id="popupButton" value="Add Score" onclick="saveScore()">
+    <input type="button" id="popupButton" value="Add Score">
   </div>
-
-  <!-- Link to the external JavaScript file -->
-  <script src="assets/js/womens.js"></script>
+  
+  <!-- Warn before unload -->
+  <script>
+    window.addEventListener('beforeunload', function (e) {
+      // Modern browsers require preventDefault and returnValue set
+      e.preventDefault();
+      e.returnValue = '';
+      // Some browsers also respect returned string
+      return '';
+    });
+  </script>
+  <script defer src="assets/js/womens.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/nosleep.js@0.12.0/dist/NoSleep.min.js"></script>
 </body>
 </html>

@@ -181,6 +181,15 @@ select {
   border: 1.5px solid var(--color-brand)
 }
 
+input {
+  padding: 8px;
+  border: 1px solid var(--color-brand);
+  border-radius: 4px;
+  background: var(--color-bg-main);
+  font-size: 16px;
+  text-align: center;
+}
+
 /* ======================== */
 /*         Buttons          */
 /* ======================== */
