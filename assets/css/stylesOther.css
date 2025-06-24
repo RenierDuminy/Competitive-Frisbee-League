@@ -356,6 +356,7 @@ input[type="button"]:hover,
 
 .links-list {
   list-style: none;       /* remove bullets */
+  font-size: 14pt;
   padding: 0;             /* remove default inset */
   max-width: 500px;       /* optional: limit width */
   margin: 0.25rem auto;      /* center & add vertical space */
