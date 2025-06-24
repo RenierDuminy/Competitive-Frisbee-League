@@ -245,7 +245,7 @@ input[type="button"]:hover,
 }
 
 /* On small screens, make home-button full width and adjust padding */
-@media (max-width: 768px) {
+@media (max-width: 400px) {
   .home-button {
     width: 75%;
     text-align: center;
