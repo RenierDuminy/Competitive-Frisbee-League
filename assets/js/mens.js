@@ -29,7 +29,7 @@ const CONFIG = {
 
 const SPECIAL_OPTIONS = {
   NA: 'N/A',
-  CALLAHAN: '‼️ CALLAHAN ‼️'
+  CALLAHAN: '‼️CALLAHAN‼️'
 };
 
 // =====================================================
@@ -505,9 +505,6 @@ class AudioManager {
 
 // =====================================================
 // REVAMPED TIMER MANAGER - Simple countdown from future date
-// =====================================================
-// =====================================================
-// REVAMPED TIMER MANAGER - Fixed Play/Pause Logic
 // =====================================================
 class TimerManager {
   constructor(audioManager, persistenceManager) {
