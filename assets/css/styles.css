@@ -7,8 +7,9 @@
   --color-brand: rgb(107, 44, 62);
   --color-shadow: rgba(0, 0, 0, 0.1);
   --color-headings-bg: #e1d4c8;
-  --color-Blue: rgb(133, 155, 255);
+  --color-Blue: rgb(214, 222, 255);
   --color-Pink: rgb(255, 184, 246);
+  --color-Green: rgb(227, 252, 225);
 }
 
 /* Stripping all margins/padding avoids cross‐browser inconsistencies */
@@ -28,6 +29,7 @@ body {
   padding: 1rem; /* breathing room on all sides */
   font-size: 20px;
 }
+
 
 /* ======================== */
 /*      Animations          */
@@ -66,6 +68,18 @@ body {
   padding: 0.5rem 0.5rem;
   border-radius: 8px;
   background: var(--color-bg-main);
+}
+
+.site-header.blue{
+  background: var(--color-Blue);
+}
+
+.site-header.pink{
+  background: var(--color-Pink);
+}
+
+.site-header.green{
+  background: var(--color-Green);
 }
 
 /* On small screens, stack header items */
