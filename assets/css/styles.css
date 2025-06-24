@@ -7,6 +7,8 @@
   --color-brand: rgb(107, 44, 62);
   --color-shadow: rgba(0, 0, 0, 0.1);
   --color-headings-bg: #e1d4c8;
+  --color-Blue: rgb(133, 155, 255);
+  --color-Pink: rgb(255, 184, 246);
 }
 
 /* Stripping all margins/padding avoids cross‐browser inconsistencies */
