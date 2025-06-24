@@ -230,22 +230,23 @@ body {
 h1 {
   text-align: center;
   color: var(--color-brand);
-  font-size: 35px;
+  font-size: 25px;
   padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
 }
 
 h2 {
   text-align: center;
   color: var(--color-brand);
   font-size: 30px;
-  padding-top: 1.25rem;
+  padding-top: 1rem;
 }
 
 h3 {
   text-align: center;
   color: var(--color-brand);
   font-size: 25px;
-  padding-top: 1.25rem;
+  padding-top: 0.5rem;
 }
 
 /* ======================== */
@@ -357,7 +358,7 @@ input[type="button"]:hover,
   list-style: none;       /* remove bullets */
   padding: 0;             /* remove default inset */
   max-width: 400px;       /* optional: limit width */
-  margin: 2rem auto;      /* center & add vertical space */
+  margin: 0.255rem auto;      /* center & add vertical space */
   font-family: Arial, sans-serif;
 }
 
@@ -372,9 +373,5 @@ input[type="button"]:hover,
   color: #333;                        /* dark text */
   text-decoration: none;              /* remove underline */
   border-radius: 4px;                 /* round corners */
-  transition: background-color 0.2s;  /* smooth hover */
-}
-
-.links-list a:hover {
-  background-color: #e0e0e0;          /* a bit darker on hover */
+  text-align: center;
 }
