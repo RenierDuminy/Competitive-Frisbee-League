@@ -21,8 +21,9 @@ const CONFIG = {
     TEAMS_DATA: 'teamsData',
     LAST_SAVE: 'lastSave'
   },
+
   AUDIO_FILES: {
-    BEEP: 'beep-07a.wav'
+    BEEP: 'REMOVED_FUNCTION'
   }
 };
 
