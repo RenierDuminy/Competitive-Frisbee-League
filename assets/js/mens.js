@@ -505,6 +505,9 @@ class AudioManager {
 // =====================================================
 // REVAMPED TIMER MANAGER - Simple countdown from future date
 // =====================================================
+// =====================================================
+// REVAMPED TIMER MANAGER - Fixed Play/Pause Logic
+// =====================================================
 class TimerManager {
   constructor(audioManager, persistenceManager) {
     this.audioManager = audioManager;
@@ -512,6 +515,7 @@ class TimerManager {
     this.timerInterval = null;
     this.isRunning = false;
     this.endTime = null;
+    this.remainingTimeMs = null; // Store remaining time when paused
     this.defaultMinutes = CONFIG.DEFAULT_TIMER_MINUTES;
     
     this.preloadAudio();
@@ -552,9 +556,14 @@ class TimerManager {
   loadTimerState() {
     const storedEndTime = this.persistenceManager.loadFromStorage('timerEndTime');
     const storedIsRunning = this.persistenceManager.loadFromStorage(CONFIG.STORAGE_KEYS.TIMER_RUNNING);
+    const storedRemainingTime = this.persistenceManager.loadFromStorage('timerRemainingTime');
 
     if (storedEndTime) {
       this.endTime = new Date(storedEndTime);
+    }
+
+    if (storedRemainingTime) {
+      this.remainingTimeMs = parseInt(storedRemainingTime, 10);
     }
 
     this.isRunning = (storedIsRunning === true || storedIsRunning === 'true');
@@ -571,12 +580,13 @@ class TimerManager {
         // Resume timer
         this.start();
       }
+    } else if (this.remainingTimeMs !== null) {
+      // Timer was paused, restore remaining time
+      this.setRemainingTime(this.remainingTimeMs);
+      this.updateDisplay();
     } else {
       // Initialize with default time if no saved state
-      if (!this.endTime) {
-        this.reset(this.defaultMinutes);
-      }
-      this.updateDisplay();
+      this.reset(this.defaultMinutes);
     }
   }
 
@@ -586,6 +596,16 @@ class TimerManager {
   saveTimerState() {
     this.persistenceManager.saveToStorage('timerEndTime', this.endTime ? this.endTime.toISOString() : null);
     this.persistenceManager.saveToStorage(CONFIG.STORAGE_KEYS.TIMER_RUNNING, this.isRunning);
+    this.persistenceManager.saveToStorage('timerRemainingTime', this.remainingTimeMs);
+  }
+
+  /**
+   * Set remaining time from milliseconds
+   */
+  setRemainingTime(milliseconds) {
+    this.remainingTimeMs = milliseconds;
+    // Set endTime to null when paused to indicate we're using remainingTimeMs
+    this.endTime = null;
   }
 
   /**
@@ -594,9 +614,27 @@ class TimerManager {
   updateDisplay() {
     const timerDisplay = document.getElementById('timerDisplay');
     
-    if (!timerDisplay || !this.endTime) return;
+    if (!timerDisplay) return;
 
-    const timeRemaining = this.getTimeRemaining(this.endTime);
+    let timeRemaining;
+    
+    if (this.isRunning && this.endTime) {
+      // Timer is running, calculate from endTime
+      timeRemaining = this.getTimeRemaining(this.endTime);
+    } else if (this.remainingTimeMs !== null) {
+      // Timer is paused, use stored remaining time
+      const total = this.remainingTimeMs;
+      const seconds = Math.floor((total / 1000) % 60);
+      const minutes = Math.floor((total / 1000 / 60) % 60);
+      timeRemaining = { total, minutes, seconds };
+    } else {
+      // Fallback to default time
+      const total = this.defaultMinutes * 60 * 1000;
+      const seconds = 0;
+      const minutes = this.defaultMinutes;
+      timeRemaining = { total, minutes, seconds };
+    }
+
     const absMinutes = Math.abs(timeRemaining.minutes);
     const absSeconds = Math.abs(timeRemaining.seconds);
     
@@ -625,7 +663,18 @@ class TimerManager {
    * Start the timer
    */
   start() {
-    if (this.isRunning || !this.endTime) return;
+    if (this.isRunning) return;
+    
+    // If we have remaining time (from pause), set new end time based on it
+    if (this.remainingTimeMs !== null) {
+      this.endTime = new Date(Date.now() + this.remainingTimeMs);
+      this.remainingTimeMs = null; // Clear since we're now running
+    }
+    
+    // If we still don't have an end time, set default
+    if (!this.endTime) {
+      this.endTime = new Date(Date.now() + (this.defaultMinutes * 60 * 1000));
+    }
     
     this.isRunning = true;
     this.updateUI();
@@ -655,7 +704,14 @@ class TimerManager {
   stop() {
     if (!this.isRunning) return;
     
+    // Store remaining time when pausing
+    if (this.endTime) {
+      const timeRemaining = this.getTimeRemaining(this.endTime);
+      this.remainingTimeMs = Math.max(0, timeRemaining.total); // Don't store negative time
+    }
+    
     this.isRunning = false;
+    this.endTime = null; // Clear endTime when paused
     
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
@@ -664,6 +720,7 @@ class TimerManager {
     
     this.updateUI();
     this.saveTimerState();
+    this.updateDisplay(); // Update display to show paused time
   }
 
   /**
@@ -685,8 +742,9 @@ class TimerManager {
   reset(minutes = this.defaultMinutes) {
     this.stop();
     
-    // Set end time to current time + specified minutes
-    this.endTime = new Date(Date.parse(new Date()) + minutes * 60 * 1000);
+    // Set remaining time and clear endTime
+    this.remainingTimeMs = minutes * 60 * 1000;
+    this.endTime = null;
     
     this.saveTimerState();
     this.updateDisplay();
@@ -714,9 +772,13 @@ class TimerManager {
    * Get remaining time in seconds (for debugging/external use)
    */
   getRemainingSeconds() {
-    if (!this.endTime) return 0;
-    const timeRemaining = this.getTimeRemaining(this.endTime);
-    return Math.floor(timeRemaining.total / 1000);
+    if (this.isRunning && this.endTime) {
+      const timeRemaining = this.getTimeRemaining(this.endTime);
+      return Math.floor(timeRemaining.total / 1000);
+    } else if (this.remainingTimeMs !== null) {
+      return Math.floor(this.remainingTimeMs / 1000);
+    }
+    return 0;
   }
 }
 
