@@ -8,7 +8,7 @@
   --color-shadow: rgba(0, 0, 0, 0.1);
   --color-headings-bg: #e1d4c8;
   --color-Blue: rgb(214, 222, 255);
-  --color-Pink: rgb(255, 184, 246);
+  --color-Pink: rgb(255, 211, 249);
   --color-Green: rgb(227, 252, 225);
 }
 
@@ -83,7 +83,7 @@ body {
 }
 
 /* On small screens, stack header items */
-@media (max-width: 768px) {
+@media (max-width: 500px) {
   .site-header {
     flex-direction: column; /* Added for smartphone: stack items */
     gap: 0.5rem;
