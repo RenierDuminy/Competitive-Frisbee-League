@@ -83,7 +83,7 @@ body {
 }
 
 /* On small screens, stack header items */
-@media (max-width: 410px) {
+@media (max-width: 210px) {
   .site-header {
     flex-direction: column; /* Added for smartphone: stack items */
     gap: 0.5rem;
