@@ -6,7 +6,9 @@
 /* Not sure - Body formatting */
 body {
   font-family: Montserrat, Helvetica;
-  background: var(--color-bg-main);
+  background-color: var(--color-bg-main);
+  background-image: url("../images/Disk_background.png");
+  background-repeat: repeat;
   color: var(--color-brand);
   line-height: 1.2;
   padding: 1rem; /* breathing room on all sides */
@@ -16,8 +18,6 @@ body {
 /*      Main Container      */
 /* ======================== */
 .form-container {
-  background-image: url("assets/images/Disk_background.png");
-  background-repeat: repeat;
   background: var(--color-bg-white);
   padding: 10px;
   border-radius: 15px;

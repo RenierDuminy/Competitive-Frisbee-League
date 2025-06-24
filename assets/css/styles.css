@@ -21,7 +21,6 @@
 /* Main body formatting */
 body {
   font-family: Montserrat, Helvetica;
-  background: var(--color-bg-main);
   color: var(--color-brand);
   line-height: 1.2;
   padding: 1rem; /* breathing room on all sides */
@@ -44,9 +43,7 @@ body {
 /* ======================== */
 
 .form-container {
-  background-repeat: repeat;
-  background: var(--color-bg-white);
-  background-image: url("assets/images/Disk_background.png");
+  background-color: var(--color-bg-white);
   padding: 10px;
   border-radius: 15px;
   box-shadow: 0 0 10px var(--color-shadow);
