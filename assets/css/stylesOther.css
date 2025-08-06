@@ -192,7 +192,6 @@ body {
 }
 
 
-
 /* ======================== */
 /*       Utility Classes    */
 /* ======================== */
@@ -207,32 +206,6 @@ body {
   font-size: 20px;
   cursor: pointer;
 }
-
-.iframe-container {
-      position: relative;
-      width: 100%;
-      max-width: 1200px;          /* stops it getting too wide on desktop */
-      margin: 2rem auto;          /* centers with some vertical space */
-      aspect-ratio: 16 / 9;       /* height = width * 9/16; adjust as needed */
-      overflow: hidden;
-      border: 2px solid #6B2C3E;  /* your original border color */
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: box-shadow 0.3s ease, transform 0.3s ease;
-    }
-    .iframe-container:hover {
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-      transform: translateY(-2px);
-    }
-
-    /* The iframe itself */
-    .iframe-container iframe {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
 
 
 /* ======================== */
